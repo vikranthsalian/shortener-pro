@@ -53,6 +53,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error creating short URL:", error)
-    return NextResponse.json({ error: "Failed to create short URL" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to create short URL" },{data:result[0]}, { status: 500 })
   }
 }
