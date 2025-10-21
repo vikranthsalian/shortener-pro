@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     `
 
     const url = result[0]
-
+    console.error("creating short URL:", url)
     return NextResponse.json({
       id: url.id,
       shortCode: url.short_code,
