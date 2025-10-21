@@ -5,6 +5,7 @@ import { runMigration } from "@/lib/migrate"
 import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
+  const url;
   try {
     await runMigration()
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       RETURNING id, short_code, original_url, created_at
     `
 
-    const url = result[0]
+     url = result[0]
     console.error("creating short URL:", url)
     return NextResponse.json({
       id: url.id,
@@ -53,6 +54,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error creating short URL:", error)
-    return NextResponse.json({ error: "Failed to create short URL" },{data:result[0]}, { status: 500 })
+    return NextResponse.json({ error: "Failed to create short URL" ,data :url }, { status: 500 })
   }
 }
