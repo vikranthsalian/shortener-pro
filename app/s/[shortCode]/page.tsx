@@ -133,7 +133,7 @@ export default function InterstitialPage() {
                   className="adsbygoogle"
                   style={{ display: "block", width: "100%", height: "250px" }}
                   data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
-                  data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT || "1234567890"}
+                  data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
                   data-ad-format="auto"
                   data-full-width-responsive="true"
                 />
