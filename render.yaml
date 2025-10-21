@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: url-shortener
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEON_NEON_DATABASE_URL
+        scope: build,runtime
+        sync: false
+      - key: NEXT_PUBLIC_BASE_URL
+        value: https://url-shortener.onrender.com
+      - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
+        scope: build,runtime
+        sync: false
