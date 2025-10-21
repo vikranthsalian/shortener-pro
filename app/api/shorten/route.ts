@@ -5,7 +5,7 @@ import { runMigration } from "@/lib/migrate"
 import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
-  const url;
+  const url="";
   try {
     await runMigration()
 
