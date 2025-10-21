@@ -23,7 +23,6 @@ export async function runMigration() {
       )
     `
 
-    // Create clicks table
     await sql`
       CREATE TABLE IF NOT EXISTS clicks (
         id SERIAL PRIMARY KEY,
@@ -33,9 +32,29 @@ export async function runMigration() {
         referrer TEXT,
         ip_address VARCHAR(45),
         country VARCHAR(2),
-        device_type VARCHAR(50)
+        city VARCHAR(100),
+        device_type VARCHAR(50),
+        device_brand VARCHAR(100),
+        os_name VARCHAR(50),
+        os_version VARCHAR(50),
+        browser_name VARCHAR(50),
+        browser_version VARCHAR(50)
       )
     `
+
+    try {
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS country VARCHAR(2)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS city VARCHAR(100)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS device_type VARCHAR(50)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS device_brand VARCHAR(100)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS os_name VARCHAR(50)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS os_version VARCHAR(50)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS browser_name VARCHAR(50)`
+      await sql`ALTER TABLE clicks ADD COLUMN IF NOT EXISTS browser_version VARCHAR(50)`
+    } catch (error) {
+      // Columns might already exist, continue
+      console.log("[v0] Columns already exist or error adding them")
+    }
 
     // Create impressions table
     await sql`
@@ -67,7 +86,11 @@ export async function runMigration() {
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
+        password_hash VARCHAR(255),
+        google_id VARCHAR(255) UNIQUE,
+        provider VARCHAR(50),
+        name VARCHAR(255),
+        image VARCHAR(500),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -78,6 +101,8 @@ export async function runMigration() {
     await sql`CREATE INDEX IF NOT EXISTS idx_urls_user_id ON urls(user_id)`
     await sql`CREATE INDEX IF NOT EXISTS idx_clicks_url_id ON clicks(url_id)`
     await sql`CREATE INDEX IF NOT EXISTS idx_clicks_created_at ON clicks(clicked_at)`
+    await sql`CREATE INDEX IF NOT EXISTS idx_clicks_country ON clicks(country)`
+    await sql`CREATE INDEX IF NOT EXISTS idx_clicks_device ON clicks(device_type)`
     await sql`CREATE INDEX IF NOT EXISTS idx_impressions_url_id ON impressions(url_id)`
     await sql`CREATE INDEX IF NOT EXISTS idx_analytics_url_id ON analytics(url_id)`
     await sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`

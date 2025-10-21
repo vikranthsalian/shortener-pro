@@ -21,7 +21,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     const result = await sql`
       SELECT id, email, created_at FROM users WHERE email = ${email}
     `
-    return result.rows[0] || null
+    return result[0] || null
   } catch (error) {
     console.error("[v0] Error fetching user:", error)
     return null
@@ -36,8 +36,7 @@ export async function createUser(email: string, password: string): Promise<User>
     VALUES (${email}, ${passwordHash})
     RETURNING id, email, created_at
   `
-
-  return result.rows[0]
+  return result[0]
 }
 
 export async function authenticateUser(email: string, password: string): Promise<User | null> {
@@ -45,8 +44,7 @@ export async function authenticateUser(email: string, password: string): Promise
     const result = await sql`
       SELECT id, email, password_hash, created_at FROM users WHERE email = ${email}
     `
-
-    const user = result.rows[0]
+    const user = result[0]
     if (!user) return null
 
     const isValid = await verifyPassword(password, user.password_hash)
@@ -61,4 +59,48 @@ export async function authenticateUser(email: string, password: string): Promise
     console.error("[v0] Authentication error:", error)
     return null
   }
+}
+
+export async function getUserByGoogleId(googleId: string): Promise<User | null> {
+  try {
+    const result = await sql`
+      SELECT id, email, created_at FROM users WHERE google_id = ${googleId}
+    `
+    return result[0] || null
+  } catch (error) {
+    console.error("[v0] Error fetching user by Google ID:", error)
+    return null
+  }
+}
+
+export async function createOAuthUser(email: string, googleId: string, name: string, image?: string): Promise<User> {
+  try {
+    const result = await sql`
+      INSERT INTO users (email, google_id, provider, name, image)
+      VALUES (${email}, ${googleId}, 'google', ${name}, ${image || null})
+      RETURNING id, email, created_at
+    `
+    return result[0]
+  } catch (error) {
+    console.error("[v0] Error creating OAuth user:", error)
+    throw error
+  }
+}
+
+export async function getOrCreateGoogleUser(
+  googleId: string,
+  email: string,
+  name: string,
+  image?: string,
+): Promise<User> {
+  // Check if user exists by Google ID
+  let user = await getUserByGoogleId(googleId)
+  if (user) return user
+
+  // Check if user exists by email
+  user = await getUserByEmail(email)
+  if (user) return user
+
+  // Create new user
+  return createOAuthUser(email, googleId, name, image)
 }

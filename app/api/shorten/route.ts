@@ -2,12 +2,20 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { generateShortCode, isValidUrl } from "@/lib/short-code-generator"
 import { runMigration } from "@/lib/migrate"
+import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
     await runMigration()
 
-    const { originalUrl, title, description } = await request.json()
+    const { originalUrl, title, description, userId } = await request.json()
+
+    if (userId) {
+      const rateLimitResult = await rateLimit(`shorten:${userId}`, 10, 60000)
+      if (rateLimitResult.isLimited) {
+        return NextResponse.json({ error: "Rate limit exceeded. Maximum 10 links per minute." }, { status: 429 })
+      }
+    }
 
     // Validate input
     if (!originalUrl || !isValidUrl(originalUrl)) {
@@ -29,8 +37,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await sql`
-      INSERT INTO urls (short_code, original_url, title, description) 
-      VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null})
+      INSERT INTO urls (short_code, original_url, title, description, user_id) 
+      VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null}, ${userId || null})
       RETURNING id, short_code, original_url, created_at
     `
 

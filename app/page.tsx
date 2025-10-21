@@ -2,19 +2,29 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Copy, Check, Loader2 } from "lucide-react"
 
 export default function Home() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
   const [originalUrl, setOriginalUrl] = useState("")
   const [title, setTitle] = useState("")
   const [shortUrl, setShortUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user")
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [])
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,6 +38,7 @@ export default function Home() {
         body: JSON.stringify({
           originalUrl,
           title: title || undefined,
+          userId: user?.id || null,
         }),
       })
 
@@ -69,10 +80,31 @@ export default function Home() {
             <h1 className="text-white font-bold text-xl">ShortLink</h1>
           </div>
           <div className="flex gap-4">
-            <Button variant="ghost" className="text-slate-300 hover:text-white">
-              Dashboard
-            </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
+            {user ? (
+              <>
+                <Button
+                  variant="ghost"
+                  className="text-slate-300 hover:text-white"
+                  onClick={() => router.push("/dashboard")}
+                >
+                  Dashboard
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-slate-300 hover:text-white"
+                  onClick={() => {
+                    localStorage.removeItem("user")
+                    setUser(null)
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <a href="/login">
+                <Button className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
+              </a>
+            )}
           </div>
         </div>
       </nav>
@@ -149,45 +181,18 @@ export default function Home() {
 
                 <div className="bg-slate-800 rounded-lg p-4 flex items-center justify-between">
                   <code className="text-blue-300 font-mono text-sm break-all">{shortUrl}</code>
-                  <Button onClick={handleCopy} size="sm" variant="ghost" className="text-slate-300 hover:text-white">
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <Button variant="ghost" onClick={handleCopy} className="text-slate-300 hover:text-white">
+                    {copied ? (
+                      <Check className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Copy className="w-4 h-4 text-slate-400" />
+                    )}
                   </Button>
                 </div>
-
-                <p className="text-slate-300 text-sm">
-                  Share this link! You'll earn money every time someone clicks it.
-                </p>
               </div>
             </Card>
           </div>
         )}
-
-        {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20">
-          <Card className="bg-slate-800 border-slate-700 p-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-white text-xl">⚡</span>
-            </div>
-            <h3 className="text-white font-bold mb-2">Instant Monetization</h3>
-            <p className="text-slate-400 text-sm">Start earning immediately with Google AdSense integration</p>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700 p-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-white text-xl">📊</span>
-            </div>
-            <h3 className="text-white font-bold mb-2">Real-time Analytics</h3>
-            <p className="text-slate-400 text-sm">Track clicks, impressions, and earnings in real-time</p>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700 p-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-              <span className="text-white text-xl">🔒</span>
-            </div>
-            <h3 className="text-white font-bold mb-2">Secure & Reliable</h3>
-            <p className="text-slate-400 text-sm">Enterprise-grade infrastructure with 99.9% uptime</p>
-          </Card>
-        </div>
       </div>
     </div>
   )
