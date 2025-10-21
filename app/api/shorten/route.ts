@@ -42,8 +42,13 @@ export async function POST(request: NextRequest) {
       VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null}, ${userId || null})
       RETURNING id, short_code, original_url, created_at
     `
+   
 
      url = result[0]
+      if(url==""){
+          return NextResponse.json({ error: "Failed to create short URL" ,data :result }, { status: 500 })
+      }
+
     console.error("creating short URL:", url)
     return NextResponse.json({
       id: url.id,
