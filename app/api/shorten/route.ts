@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
    
 
      url = result[0]
-      if(url==""){
-          return NextResponse.json({ error: "Failed to create short URL" ,data :result }, { status: 500 })
-      }
+      //if(url==""){
+          return NextResponse.json({ error: "Failed to create short URL 1" ,data :result }, { status: 500 })
+     // }
 
     console.error("creating short URL:", url)
     return NextResponse.json({
@@ -59,6 +59,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Error creating short URL:", error)
-    return NextResponse.json({ error: "Failed to create short URL" ,data :url }, { status: 500 })
+    return NextResponse.json({ error: "Failed to create short URL 2" ,data :url }, { status: 500 })
   }
 }
