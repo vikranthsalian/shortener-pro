@@ -11,7 +11,7 @@ export default function InterstitialPage() {
   const shortCode = params.shortCode as string
 
   const [originalUrl, setOriginalUrl] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState(5)
+  const [timeLeft, setTimeLeft] = useState(50)
   const [canSkip, setCanSkip] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
