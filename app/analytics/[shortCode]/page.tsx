@@ -30,7 +30,7 @@ interface LinkAnalytics {
   total_clicks: number
   total_impressions: number
   total_earnings: string
-  ctr: number
+  ctr: number | string
 }
 
 interface DailyStats {
@@ -197,7 +197,9 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm mb-1">CTR</p>
-                <p className="text-white text-3xl font-bold">{analytics.ctr.toFixed(2)}%</p>
+                <p className="text-white text-3xl font-bold">
+                  {(typeof analytics.ctr === "string" ? Number.parseFloat(analytics.ctr) : analytics.ctr).toFixed(2)}%
+                </p>
               </div>
               <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-purple-400" />
