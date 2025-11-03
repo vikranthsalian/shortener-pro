@@ -96,6 +96,16 @@ export async function runMigration() {
       )
     `
 
+    try {
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) UNIQUE`
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50)`
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255)`
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS image VARCHAR(500)`
+    } catch (error) {
+      // Columns might already exist, continue
+      console.log("[v0] User columns already exist or error adding them")
+    }
+
     // Create indexes
     await sql`CREATE INDEX IF NOT EXISTS idx_urls_short_code ON urls(short_code)`
     await sql`CREATE INDEX IF NOT EXISTS idx_urls_user_id ON urls(user_id)`
