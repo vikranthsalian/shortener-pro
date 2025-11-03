@@ -97,6 +97,7 @@ export async function runMigration() {
     `
 
     try {
+      await sql`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`
       await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255) UNIQUE`
       await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50)`
       await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS name VARCHAR(255)`
