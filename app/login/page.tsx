@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react"
 declare global {
   interface Window {
     google: any
+    adsbygoogle: any
   }
 }
 
@@ -24,13 +25,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false)
 
-  // Load Google Sign-In script
+  // Load Google Sign-In and AdSense scripts
   useEffect(() => {
-    const script = document.createElement("script")
-    script.src = "https://accounts.google.com/gsi/client"
-    script.async = true
-    script.defer = true
-    script.onload = () => {
+    const googleScript = document.createElement("script")
+    googleScript.src = "https://accounts.google.com/gsi/client"
+    googleScript.async = true
+    googleScript.defer = true
+    googleScript.onload = () => {
       setGoogleScriptLoaded(true)
       if (window.google) {
         window.google.accounts.id.initialize({
@@ -44,11 +45,30 @@ export default function LoginPage() {
         })
       }
     }
-    document.body.appendChild(script)
+    document.body.appendChild(googleScript)
+
+    const adsenseScript = document.createElement("script")
+    adsenseScript.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`
+    adsenseScript.async = true
+    adsenseScript.crossOrigin = "anonymous"
+    document.head.appendChild(adsenseScript)
 
     return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script)
+      if (document.body.contains(googleScript)) {
+        document.body.removeChild(googleScript)
+      }
+      if (document.head.contains(adsenseScript)) {
+        document.head.removeChild(adsenseScript)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (window.adsbygoogle) {
+      try {
+        window.adsbygoogle.push({})
+      } catch (err) {
+        console.log("[v0] AdSense push failed:", err)
       }
     }
   }, [])
@@ -206,6 +226,17 @@ export default function LoginPage() {
             )}
           </Button>
         </form>
+
+        <div className="my-6">
+          <ins
+            className="adsbygoogle"
+            style={{ display: "block" }}
+            data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
+            data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          ></ins>
+        </div>
 
         {/* Sign Up Link */}
         <p className="text-center text-slate-400 text-sm mt-6">

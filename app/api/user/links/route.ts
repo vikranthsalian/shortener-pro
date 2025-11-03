@@ -19,19 +19,21 @@ export async function GET(request: Request) {
         u.original_url,
         u.title,
         u.created_at,
-        COALESCE(COUNT(DISTINCT c.id), 0) as total_clicks,
-        COALESCE(COUNT(DISTINCT i.id), 0) as total_impressions,
-        COALESCE(SUM(CAST(a.estimated_earnings AS DECIMAL)), 0) as estimated_earnings
+        COALESCE((SELECT COUNT(*) FROM clicks WHERE url_id = u.id), 0) as total_clicks,
+        COALESCE((SELECT COUNT(*) FROM impressions WHERE url_id = u.id), 0) as total_impressions
       FROM urls u
-      LEFT JOIN clicks c ON u.id = c.url_id
-      LEFT JOIN impressions i ON u.id = i.url_id
-      LEFT JOIN analytics a ON u.id = a.url_id
       WHERE u.user_id = ${userId}
-      GROUP BY u.id, u.short_code, u.original_url, u.title, u.created_at
       ORDER BY u.created_at DESC
     `
 
-    return Response.json({ links: result })
+    const links = result.map((link: any) => ({
+      ...link,
+      total_clicks: Number(link.total_clicks),
+      total_impressions: Number(link.total_impressions),
+      estimated_earnings: ((Number(link.total_impressions) / 1000) * 0.5).toFixed(2),
+    }))
+
+    return Response.json({ links })
   } catch (error) {
     console.error("[v0] Error fetching user links:", error)
     return Response.json({ error: "Failed to fetch links" }, { status: 500 })

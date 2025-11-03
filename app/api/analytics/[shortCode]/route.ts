@@ -31,14 +31,15 @@ export async function GET(request: NextRequest, { params }: { params: { shortCod
 
     const cpmRate = 0.5 // $0.50 per 1000 impressions
     const estimatedEarnings = (totalImpressions / 1000) * cpmRate
-    const ctr = totalClicks > 0 ? (totalImpressions / totalClicks) * 100 : 0
+
+    const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0
 
     const dailyStats = await sql`
       SELECT 
         DATE(c.clicked_at) as date,
         COUNT(DISTINCT c.id) as clicks,
         COALESCE(COUNT(DISTINCT i.id), 0) as impressions,
-        COALESCE(ROUND((COUNT(DISTINCT i.id)::DECIMAL / NULLIF(COUNT(DISTINCT c.id), 0)) * 100, 2), 0) as ctr,
+        COALESCE(ROUND((COUNT(DISTINCT c.id)::DECIMAL / NULLIF(COUNT(DISTINCT i.id), 0)) * 100, 2), 0) as ctr,
         COALESCE(ROUND((COUNT(DISTINCT i.id)::DECIMAL / 1000) * ${cpmRate}, 2), 0) as earnings
       FROM clicks c
       LEFT JOIN impressions i ON i.url_id = c.url_id AND DATE(i.impressed_at) = DATE(c.clicked_at)
@@ -56,12 +57,13 @@ export async function GET(request: NextRequest, { params }: { params: { shortCod
         total_clicks: totalClicks,
         total_impressions: totalImpressions,
         total_earnings: estimatedEarnings.toFixed(2),
-        ctr: ctr,
+        ctr: ctr.toFixed(2),
       },
       dailyStats: dailyStats.map((stat: any) => ({
         date: stat.date,
         clicks: Number(stat.clicks),
         impressions: Number(stat.impressions),
+        ctr: Number(stat.ctr),
         earnings: Number(stat.earnings),
       })),
     })

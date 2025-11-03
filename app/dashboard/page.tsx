@@ -238,18 +238,6 @@ export default function Dashboard() {
                     </div>
 
                     <div>
-                      <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">Original URL</p>
-                      <a
-                        href={link.original_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-slate-300 hover:text-slate-100 text-sm"
-                      >
-                        {link.original_url}
-                      </a>
-                    </div>
-
-                    <div>
                       <p className="text-slate-400 text-xs uppercase tracking-wide mb-1">Created</p>
                       <p className="text-slate-300 text-sm">{new Date(link.created_at).toLocaleDateString()}</p>
                     </div>
