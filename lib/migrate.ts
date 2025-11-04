@@ -19,7 +19,8 @@ export async function runMigration() {
         is_active BOOLEAN DEFAULT TRUE,
         user_id VARCHAR(255),
         title VARCHAR(255),
-        description TEXT
+        description TEXT,
+        expiry_date TIMESTAMP
       )
     `
 
@@ -117,6 +118,13 @@ export async function runMigration() {
     await sql`CREATE INDEX IF NOT EXISTS idx_impressions_url_id ON impressions(url_id)`
     await sql`CREATE INDEX IF NOT EXISTS idx_analytics_url_id ON analytics(url_id)`
     await sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`
+
+    try {
+      await sql`ALTER TABLE urls ADD COLUMN IF NOT EXISTS expiry_date TIMESTAMP`
+      await sql`CREATE INDEX IF NOT EXISTS idx_urls_expiry_date ON urls(expiry_date)`
+    } catch (error) {
+      console.log("[v0] Expiry column already exists or error adding it")
+    }
 
     migrationRun = true
     console.log("[v0] Database migration completed successfully")

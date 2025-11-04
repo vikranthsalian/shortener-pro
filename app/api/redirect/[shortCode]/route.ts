@@ -9,13 +9,23 @@ export async function GET(request: NextRequest, { params }: { params: { shortCod
 
     const { shortCode } = params
 
-    const result = await sql`SELECT id, original_url FROM urls WHERE short_code = ${shortCode} AND is_active = true`
+    const result = await sql`
+      SELECT id, original_url, expiry_date 
+      FROM urls 
+      WHERE short_code = ${shortCode} AND is_active = true
+    `
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Short URL not found" }, { status: 404 })
     }
 
     const url = result[0]
+
+    if (url.expiry_date && new Date(url.expiry_date) < new Date()) {
+      // Mark as inactive and delete it
+      await sql`UPDATE urls SET is_active = false WHERE id = ${url.id}`
+      return NextResponse.json({ error: "This link has expired" }, { status: 410 })
+    }
 
     // Record click asynchronously (don't wait for it)
     recordClick(url.id, request).catch(console.error)

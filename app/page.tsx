@@ -13,6 +13,7 @@ export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [originalUrl, setOriginalUrl] = useState("")
   const [title, setTitle] = useState("")
+  const [expiry, setExpiry] = useState<"7days" | "1month" | "never">("7days")
   const [shortUrl, setShortUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -111,6 +112,7 @@ export default function Home() {
           originalUrl,
           title: title || undefined,
           userId: user?.id || null,
+          expiry: user ? expiry : "7days", // Non-logged-in users always get 7 days
         }),
       })
 
@@ -125,6 +127,7 @@ export default function Home() {
       setShortUrl(data.shortUrl)
       setOriginalUrl("")
       setTitle("")
+      setExpiry("7days")
     } catch (err) {
       setError("An error occurred. Please try again.")
     } finally {
@@ -214,6 +217,28 @@ export default function Home() {
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
+
+              {user && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">Link Expiry</label>
+                  <select
+                    value={expiry}
+                    onChange={(e) => setExpiry(e.target.value as "7days" | "1month" | "never")}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                  >
+                    <option value="7days">Expire in 7 days</option>
+                    <option value="1month">Expire in 1 month</option>
+                    <option value="never">Never expire</option>
+                  </select>
+                </div>
+              )}
+
+              {!user && (
+                <div className="bg-amber-900/30 border border-amber-700 text-amber-200 px-4 py-3 rounded-lg text-sm">
+                  <p className="font-semibold mb-1">⏰ Note: Your link will expire in 7 days</p>
+                  <p className="text-xs opacity-90">Sign in to create permanent links or customize expiry settings.</p>
+                </div>
+              )}
 
               {error && (
                 <div className="bg-red-900/20 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm">
