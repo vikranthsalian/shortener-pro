@@ -173,9 +173,7 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <div>
-             
-              </div>
+              <div></div>
             )}
           </div>
         </div>
@@ -238,15 +236,19 @@ export default function Home() {
                 )}
               </Button>
 
-              <div className="text-center mb-6 mt-6">
-                <p className="text-slate-300 font-medium mb-4">OR</p>
-              </div>
-              <div id="google-signin-button-home" className="mb-4"></div>
+              {!user && (
+                <>
+                  <div className="text-center mb-6 mt-6">
+                    <p className="text-slate-300 font-medium mb-4">OR</p>
+                  </div>
+                  <div id="google-signin-button-home" className="mb-4"></div>
 
-              {!googleScriptLoaded && (
-                <div className="w-full bg-slate-700 text-slate-300 py-3 rounded-lg text-center text-sm">
-                  Loading Google Sign-In...
-                </div>
+                  {!googleScriptLoaded && (
+                    <div className="w-full bg-slate-700 text-slate-300 py-3 rounded-lg text-center text-sm">
+                      Loading Google Sign-In...
+                    </div>
+                  )}
+                </>
               )}
             </form>
           </Card>
