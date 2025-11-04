@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -18,6 +17,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -25,6 +26,77 @@ export default function Home() {
       setUser(JSON.parse(userData))
     }
   }, [])
+
+  useEffect(() => {
+    const googleScript = document.createElement("script")
+    googleScript.src = "https://accounts.google.com/gsi/client"
+    googleScript.async = true
+    googleScript.defer = true
+    googleScript.onload = () => {
+      setGoogleScriptLoaded(true)
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          callback: handleGoogleSignIn,
+        })
+        window.google.accounts.id.renderButton(document.getElementById("google-signin-button-home"), {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+        })
+      }
+    }
+    document.body.appendChild(googleScript)
+
+    return () => {
+      if (document.body.contains(googleScript)) {
+        document.body.removeChild(googleScript)
+      }
+    }
+  }, [])
+
+  const handleGoogleSignIn = async (response: any) => {
+    setGoogleLoading(true)
+    setError(null)
+
+    try {
+      const base64Url = response.credential.split(".")[1]
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join(""),
+      )
+      const googleUser = JSON.parse(jsonPayload)
+
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          googleId: googleUser.sub,
+          email: googleUser.email,
+          name: googleUser.name,
+          image: googleUser.picture,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error || "Google sign-in failed")
+        setGoogleLoading(false)
+        return
+      }
+
+      const data = await res.json()
+      localStorage.setItem("user", JSON.stringify(data.user))
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("[v0] Google sign-in error:", err)
+      setError("Failed to sign in with Google")
+      setGoogleLoading(false)
+    }
+  }
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -101,9 +173,9 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <a href="/login">
-                <Button className="bg-blue-600 hover:bg-blue-700">Sign In</Button>
-              </a>
+              <div>
+             
+              </div>
             )}
           </div>
         </div>
@@ -165,6 +237,17 @@ export default function Home() {
                   "Create Short Link"
                 )}
               </Button>
+
+              <div className="text-center mb-6 mt-6">
+                <p className="text-slate-300 font-medium mb-4">OR</p>
+              </div>
+              <div id="google-signin-button-home" className="mb-4"></div>
+
+              {!googleScriptLoaded && (
+                <div className="w-full bg-slate-700 text-slate-300 py-3 rounded-lg text-center text-sm">
+                  Loading Google Sign-In...
+                </div>
+              )}
             </form>
           </Card>
         </div>
