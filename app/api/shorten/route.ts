@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       id: url.id,
       shortCode: url.short_code,
       originalUrl: url.original_url,
-      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "https://v0-url-shortener-architecture.vercel.app"}/s/${url.short_code}`,
+      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "https://shortner-pro.vercel.app"}/s/${url.short_code}`,
       createdAt: url.created_at,
       expiryDate: url.expiry_date,
     })
