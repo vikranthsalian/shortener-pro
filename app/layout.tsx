@@ -8,9 +8,9 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Shortner Pro - URL Shortener, Link Analytics & Monetization Platform",
+  title: "Shortner Pro - URL Shortener & Link Analytics",
   description:
-    "Create short links with advanced analytics, track clicks, and earn money with every view. Shortner Pro is the best free URL shortener for businesses, marketers, and content creators.",
+    "Create short links with advanced analytics, track clicks. Shortner Pro is the best free URL shortener for businesses, marketers, and content creators.",
   keywords: [
     "URL shortener",
     "Shortner Pro",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_BASE_URL || "https://shortner-pro.com",
     siteName: "Shortner Pro",
-    title: "Shortner Pro - URL Shortener & Monetization",
+    title: "Shortner Pro - URL Shortener & Link Analytics",
     description:
       "Create professional short links with analytics, track clicks, and monetize your content with Shortner Pro.",
     images: [
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Shortner Pro - URL Shortener & Monetization",
+    title: "Shortner Pro - URL Shortener & Link Analytics",
     description: "Create short links, track analytics, and earn money with Shortner Pro.",
     images: [`${process.env.NEXT_PUBLIC_BASE_URL || "https://shortner-pro.com"}/og-image.png`],
   },
