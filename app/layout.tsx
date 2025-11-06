@@ -13,6 +13,8 @@ export const metadata: Metadata = {
     "Create short links with advanced analytics, track clicks, and earn money with every view. Shortner Pro is the best free URL shortener for businesses, marketers, and content creators.",
   keywords: [
     "URL shortener",
+    "Shortner Pro",
+    "Url Shortner"
     "short link",
     "link shortener",
     "short URL",
@@ -69,7 +71,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
+    google: "2CQJB7Lwkk-y4EVGbHqjdmCh81h_g_5UkJqiLUaiULA",
   },
   alternates: {
     canonical: process.env.NEXT_PUBLIC_BASE_URL || "https://shortner-pro.com",
