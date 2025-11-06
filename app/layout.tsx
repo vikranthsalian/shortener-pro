@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   keywords: [
     "URL shortener",
     "Shortner Pro",
-    "Url Shortner"
+    "Url Shortner",
     "short link",
     "link shortener",
     "short URL",
