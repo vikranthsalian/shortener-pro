@@ -148,11 +148,11 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SL</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+              SP
             </div>
-            <h1 className="text-white font-bold text-xl">ShortLink</h1>
+            <h1 className="text-white font-bold text-2xl">Shortner Pro</h1>
           </div>
           <div className="flex gap-4">
             {user ? (
@@ -185,9 +185,9 @@ export default function Home() {
       {/* Hero Section */}
       <div className="max-w-6xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold text-white mb-4">Shorten URLs & Earn Money</h2>
+          <h2 className="text-5xl font-bold text-white mb-4">Your Links, Shorter & Smarter</h2>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Create short links, monetize with ads, and track analytics. Get paid for every click.
+            Create professional short links, track detailed analytics, and monetize every click with Shortner Pro.
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export default function Home() {
                   placeholder="My awesome link"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                  className="bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400"
                 />
               </div>
 

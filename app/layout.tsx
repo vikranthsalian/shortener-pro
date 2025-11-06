@@ -1,15 +1,17 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import './globals.css'
+import type React from "react"
+import type { Metadata } from "next"
+import { Geist, Geist_Mono } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
+import "./globals.css"
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
+const _geist = Geist({ subsets: ["latin"] })
+const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'Url Shortner',
-  description: 'Created by Creative Theif',
-  generator: 'v0.app',
+  title: "Shortner Pro - URL Shortener & Monetization",
+  description:
+    "Create short links, track analytics, and earn money with every click. Professional URL shortening for businesses and marketers.",
+  generator: "v0.app",
 }
 
 export default function RootLayout({
@@ -19,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-     <head>
+      <head>
         <meta name="google-adsense-account" content="ca-pub-3042492065432652" />
       </head>
       <body className={`font-sans antialiased`}>
