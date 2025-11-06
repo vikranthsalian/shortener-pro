@@ -1,0 +1,20 @@
+# Robots.txt for Shortner Pro
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard
+
+# Specific crawlers
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://shortner-pro.com/sitemap.xml

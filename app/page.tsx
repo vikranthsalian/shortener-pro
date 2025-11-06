@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Copy, Check, Loader2 } from "lucide-react"
+import { Copy, Check, Loader2, TrendingUp, BarChart3, DollarSign } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
@@ -146,8 +146,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Navigation */}
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
+        <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between" aria-label="Main navigation">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">
               SP
@@ -179,52 +179,65 @@ export default function Home() {
               <div></div>
             )}
           </div>
-        </div>
-      </nav>
+        </nav>
+      </header>
 
       {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-4 py-20">
-        <div className="text-center mb-12">
+      <main className="max-w-6xl mx-auto px-4 py-20">
+        <section className="text-center mb-12">
           <h2 className="text-5xl font-bold text-white mb-4">Your Links, Shorter & Smarter</h2>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-            Create professional short links, track detailed analytics, and monetize every click with Shortner Pro.
+            Create professional short links, track detailed analytics, and monetize every click with Shortner Pro. The
+            easiest URL shortener for businesses and marketers.
           </p>
-        </div>
+        </section>
 
         {/* Main Form Card */}
         <div className="max-w-2xl mx-auto mb-12">
           <Card className="bg-slate-800 border-slate-700 p-8">
-            <form onSubmit={handleShorten} className="space-y-4">
+            <form onSubmit={handleShorten} className="space-y-4" aria-label="Create short link form">
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">Original URL</label>
+                <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="original-url">
+                  Original URL
+                </label>
                 <Input
+                  id="original-url"
                   type="url"
                   placeholder="https://example.com/very/long/url"
                   value={originalUrl}
                   onChange={(e) => setOriginalUrl(e.target.value)}
                   required
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                  aria-label="Enter the URL you want to shorten"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">Title (Optional)</label>
+                <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-title">
+                  Title (Optional)
+                </label>
                 <Input
+                  id="link-title"
                   type="text"
                   placeholder="My awesome link"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400"
+                  aria-label="Optional title for your short link"
                 />
               </div>
 
               {user && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-200 mb-2">Link Expiry</label>
+                  <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-expiry">
+                    Link Expiry
+                  </label>
                   <select
+                    id="link-expiry"
                     value={expiry}
                     onChange={(e) => setExpiry(e.target.value as "7days" | "1month" | "never")}
                     className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                    aria-label="Choose link expiry option"
                   >
                     <option value="7days">Expire in 7 days</option>
                     <option value="1month">Expire in 1 month</option>
@@ -234,14 +247,20 @@ export default function Home() {
               )}
 
               {!user && (
-                <div className="bg-amber-900/30 border border-amber-700 text-amber-200 px-4 py-3 rounded-lg text-sm">
+                <div
+                  className="bg-amber-900/30 border border-amber-700 text-amber-200 px-4 py-3 rounded-lg text-sm"
+                  role="alert"
+                >
                   <p className="font-semibold mb-1">⏰ Note: Your link will expire in 7 days</p>
                   <p className="text-xs opacity-90">Sign in to create permanent links or customize expiry settings.</p>
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-900/20 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm">
+                <div
+                  className="bg-red-900/20 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm"
+                  role="alert"
+                >
                   {error}
                 </div>
               )}
@@ -303,7 +322,37 @@ export default function Home() {
             </Card>
           </div>
         )}
-      </div>
+
+        {/* Features Section */}
+        <section className="mt-24 mb-12">
+          <h3 className="text-3xl font-bold text-white text-center mb-12">Why Choose Shortner Pro?</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <article className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-indigo-500 transition">
+              <TrendingUp className="w-8 h-8 text-indigo-400 mb-4" />
+              <h4 className="text-lg font-semibold text-white mb-2">Advanced Analytics</h4>
+              <p className="text-slate-300 text-sm">
+                Track every click with detailed analytics including device info, location data, and click patterns.
+              </p>
+            </article>
+
+            <article className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-indigo-500 transition">
+              <BarChart3 className="w-8 h-8 text-indigo-400 mb-4" />
+              <h4 className="text-lg font-semibold text-white mb-2">Real-time Dashboard</h4>
+              <p className="text-slate-300 text-sm">
+                Monitor your links in real-time with comprehensive dashboards and detailed performance reports.
+              </p>
+            </article>
+
+            <article className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-indigo-500 transition">
+              <DollarSign className="w-8 h-8 text-indigo-400 mb-4" />
+              <h4 className="text-lg font-semibold text-white mb-2">Monetize Your Links</h4>
+              <p className="text-slate-300 text-sm">
+                Earn money from every click with our integrated monetization platform and ad network.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
     </div>
   )
 }
