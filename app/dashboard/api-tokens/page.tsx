@@ -6,7 +6,21 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Copy, Trash2, Key, Plus, LogOut, Menu, X, Eye, EyeOff, AlertCircle } from "lucide-react"
+import {
+  Loader2,
+  Copy,
+  Trash2,
+  Key,
+  Plus,
+  LogOut,
+  Menu,
+  X,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react"
 import Link from "next/link"
 import {
   Dialog,
@@ -17,6 +31,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Textarea } from "@/components/ui/textarea"
 
 interface APIToken {
   id: string
@@ -50,6 +65,14 @@ export default function APITokensPage() {
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<APIToken | null>(null)
   const [visibleTokens, setVisibleTokens] = useState<{ [key: string]: boolean }>({})
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
+  const [firebaseProjectId, setFirebaseProjectId] = useState("")
+  const [firebaseClientEmail, setFirebaseClientEmail] = useState("")
+  const [firebasePrivateKey, setFirebasePrivateKey] = useState("")
+  const [verifying, setVerifying] = useState(false)
+  const [verificationResult, setVerificationResult] = useState<{
+    success: boolean
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -161,6 +184,53 @@ export default function APITokensPage() {
   const maskToken = (token: string) => {
     if (visibleTokens[token]) return token
     return `${token.substring(0, 10)}${"•".repeat(30)}${token.substring(token.length - 10)}`
+  }
+
+  const handleVerifyFirebase = async () => {
+    if (!firebaseProjectId.trim() || !firebaseClientEmail.trim() || !firebasePrivateKey.trim()) {
+      setVerificationResult({
+        success: false,
+        message: "Please fill in all Firebase credentials",
+      })
+      return
+    }
+
+    setVerifying(true)
+    setVerificationResult(null)
+
+    try {
+      const response = await fetch("/api/firebase-verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: firebaseProjectId,
+          clientEmail: firebaseClientEmail,
+          privateKey: firebasePrivateKey,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setVerificationResult({
+          success: true,
+          message: "Firebase connection verified successfully! Your website can access this database.",
+        })
+      } else {
+        setVerificationResult({
+          success: false,
+          message: data.error || "Failed to connect to Firebase. Please check your credentials.",
+        })
+      }
+    } catch (error) {
+      console.error("[v0] Error verifying Firebase:", error)
+      setVerificationResult({
+        success: false,
+        message: "An error occurred while verifying Firebase connection.",
+      })
+    } finally {
+      setVerifying(false)
+    }
   }
 
   if (loading) {
@@ -299,6 +369,92 @@ export default function APITokensPage() {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Firebase Connection Verification Card */}
+        <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
+          <div className="mb-4">
+            <h3 className="text-white font-semibold text-lg mb-2">Firebase Connection Verification</h3>
+            <p className="text-slate-400 text-sm">
+              Enter your Firebase credentials to verify if this website can access your Firestore database.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="firebaseProjectId" className="text-slate-300">
+                Firebase Project ID
+              </Label>
+              <Input
+                id="firebaseProjectId"
+                placeholder="your-project-id"
+                value={firebaseProjectId}
+                onChange={(e) => setFirebaseProjectId(e.target.value)}
+                className="bg-slate-900 border-slate-600 text-white mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="firebaseClientEmail" className="text-slate-300">
+                Firebase Client Email
+              </Label>
+              <Input
+                id="firebaseClientEmail"
+                placeholder="firebase-adminsdk@your-project.iam.gserviceaccount.com"
+                value={firebaseClientEmail}
+                onChange={(e) => setFirebaseClientEmail(e.target.value)}
+                className="bg-slate-900 border-slate-600 text-white mt-2"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="firebasePrivateKey" className="text-slate-300">
+                Firebase Private Key
+              </Label>
+              <Textarea
+                id="firebasePrivateKey"
+                placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
+                value={firebasePrivateKey}
+                onChange={(e) => setFirebasePrivateKey(e.target.value)}
+                className="bg-slate-900 border-slate-600 text-white mt-2 min-h-[120px] font-mono text-sm"
+              />
+              <p className="text-slate-500 text-xs mt-1">
+                Paste the entire private key including the BEGIN and END markers
+              </p>
+            </div>
+
+            {verificationResult && (
+              <Alert
+                className={
+                  verificationResult.success ? "bg-emerald-900/20 border-emerald-700" : "bg-red-900/20 border-red-700"
+                }
+              >
+                {verificationResult.success ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+                <AlertDescription className={verificationResult.success ? "text-emerald-300" : "text-red-300"}>
+                  {verificationResult.message}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button
+              onClick={handleVerifyFirebase}
+              disabled={verifying}
+              className="w-full bg-indigo-600 hover:bg-indigo-700"
+            >
+              {verifying ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Verifying Connection...
+                </>
+              ) : (
+                "Verify Firebase Connection"
+              )}
+            </Button>
+          </div>
+        </Card>
 
         {/* API Documentation Link */}
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
