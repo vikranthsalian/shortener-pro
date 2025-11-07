@@ -44,6 +44,8 @@ function isPublicAPIRoute(path: string): boolean {
     "/api/redirect/",
     "/api/impression/",
     "/api/validate-token",
+    "/api/tokens",
+    "/api/firebase-test",
   ]
 
   return publicRoutes.some((route) => path.startsWith(route))
