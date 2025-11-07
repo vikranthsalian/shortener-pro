@@ -61,7 +61,7 @@ export async function createFirebaseUser(userId: number, email: string): Promise
       updatedAt: new Date().toISOString(),
     }
 
-    await db.collection("users").doc(userId.toString()).set(userDoc)
+    await db.collection("api_users").doc(userId.toString()).set(userDoc)
     console.log("[v0] Firebase user document created successfully for userId:", userId)
   } catch (error) {
     console.error("[v0] Error creating Firebase user document:", error)
@@ -80,7 +80,7 @@ export async function getFirebaseUser(userId: number): Promise<FirebaseUser | nu
       return null
     }
 
-    const userDoc = await db.collection("users").doc(userId.toString()).get()
+    const userDoc = await db.collection("api_users").doc(userId.toString()).get()
 
     if (!userDoc.exists) {
       return null
@@ -113,7 +113,7 @@ export async function updateFirebaseUser(userId: number, updates: Partial<Fireba
     }
 
     await db
-      .collection("users")
+      .collection("api_users")
       .doc(userId.toString())
       .update({
         ...updates,
