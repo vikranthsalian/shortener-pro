@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { runMigration } from "@/lib/migrate"
 import { getUserByEmail, createUser } from "@/lib/auth"
+import { createFirebaseUser } from "@/lib/firebase-user"
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,8 +30,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create new user
+    // Create new user in database
+    console.log("[v0] Creating new user in database...")
     const newUser = await createUser(email, password)
+    console.log("[v0] User created successfully in database:", newUser.id)
+
+    try {
+
+      await createFirebaseUser(newUser.id, newUser.email)
+    } catch (firebaseError) {
+      // Firebase creation is optional, log but don't fail registration
+      console.log("[v0] Firebase user creation skipped or failed (non-critical)")
+    }
 
     return NextResponse.json(
       {

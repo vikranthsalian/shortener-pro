@@ -114,23 +114,40 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
+      console.log("[v0] Submitting registration...")
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
 
-      if (!response.ok) {
-        const data = await response.json()
-        setError(data.error || "Registration failed")
+      console.log("[v0] Response status:", response.status)
+
+      const contentType = response.headers.get("content-type")
+      console.log("[v0] Content type:", contentType)
+
+      if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await response.text()
+        console.error("[v0] Non-JSON response:", textResponse)
+        setError("Server error. Please try again.")
         setLoading(false)
         return
       }
 
       const data = await response.json()
+      console.log("[v0] Response data:", data)
+
+      if (!response.ok) {
+        setError(data.error || "Registration failed")
+        setLoading(false)
+        return
+      }
+
+      console.log("[v0] Registration successful, redirecting to dashboard...")
       localStorage.setItem("user", JSON.stringify(data.user))
       router.push("/dashboard")
     } catch (err) {
+      console.error("[v0] Registration error:", err)
       setError("An error occurred. Please try again.")
       setLoading(false)
     }

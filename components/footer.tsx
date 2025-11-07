@@ -126,9 +126,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="/api/docs" className="text-slate-400 hover:text-white text-sm transition">
+                <Link href="/api-docs" className="text-slate-400 hover:text-white text-sm transition">
                   API Documentation
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
