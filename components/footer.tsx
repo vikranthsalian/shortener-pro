@@ -106,6 +106,16 @@ export default function Footer() {
             <h4 className="text-white font-semibold mb-4">Resources</h4>
             <ul className="space-y-2">
               <li>
+                <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="/resources" className="text-slate-400 hover:text-white text-sm transition">
+                  Free Resources
+                </Link>
+              </li>
+              <li>
                 <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition">
                   FAQ
                 </Link>
@@ -118,16 +128,6 @@ export default function Footer() {
               <li>
                 <a href="/api/docs" className="text-slate-400 hover:text-white text-sm transition">
                   API Documentation
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-400 hover:text-white text-sm transition">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-400 hover:text-white text-sm transition">
-                  Help Center
                 </a>
               </li>
             </ul>
