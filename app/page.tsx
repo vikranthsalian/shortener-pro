@@ -154,6 +154,20 @@ export default function Home() {
             </div>
             <h1 className="text-white font-bold text-2xl">Shortner Pro</h1>
           </div>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="/features" className="text-slate-300 hover:text-white transition">
+              Features
+            </a>
+            <a href="/how-it-works" className="text-slate-300 hover:text-white transition">
+              How it Works
+            </a>
+            <a href="/faq" className="text-slate-300 hover:text-white transition">
+              FAQ
+            </a>
+            <a href="/contact" className="text-slate-300 hover:text-white transition">
+              Contact
+            </a>
+          </div>
           <div className="flex gap-4">
             {user ? (
               <>
@@ -176,7 +190,9 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <div></div>
+              <Button variant="ghost" className="text-slate-300 hover:text-white" onClick={() => router.push("/login")}>
+                Sign In
+              </Button>
             )}
           </div>
         </nav>
