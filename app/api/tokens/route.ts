@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, firebaseAppId, tokenName } = body
+    const { userId, firebaseAppId, tokenName,userEmail } = body
 
     if (!userId || !firebaseAppId || !tokenName) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] POST /api/tokens - Creating token for user:", userId, "with Firebase App ID:", firebaseAppId)
 
-    const token = await createAPIToken(userId, firebaseAppId, tokenName)
+    const token = await createAPIToken(userId, firebaseAppId, tokenName,userEmail)
     console.log("[v0] Token created successfully:", token.name)
 
     return NextResponse.json({ token }, { status: 201 })
