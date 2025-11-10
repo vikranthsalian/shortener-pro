@@ -117,6 +117,7 @@ export default function FirebaseDetailsPage() {
           userId: user.id,
           firebaseAppId: savedFirebaseConfig.projectId,
           tokenName: newTokenName,
+          userEmail:user.email
         }),
       })
 

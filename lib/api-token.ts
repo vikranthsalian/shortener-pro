@@ -24,7 +24,7 @@ export function generateAPIToken(): string {
   return `${prefix}${token}`
 }
 
-export async function createAPIToken(userId: number, firebaseAppID: string, tokenName: string): Promise<APIToken> {
+export async function createAPIToken(userId: number, firebaseAppID: string, tokenName: string,userEmail: string): Promise<APIToken> {
   const token = generateAPIToken()
   const apiToken: APIToken = {
     id: token,
