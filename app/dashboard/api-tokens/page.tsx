@@ -6,10 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Key, LogOut, Menu, X, CheckCircle2, XCircle, Database, TrendingUp } from "lucide-react"
+import { Loader2, Copy, Trash2, Key, Plus, LogOut, Menu, X, Eye, EyeOff, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Textarea } from "@/components/ui/textarea"
 
 interface APIToken {
   id: string
@@ -43,23 +50,6 @@ export default function APITokensPage() {
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<APIToken | null>(null)
   const [visibleTokens, setVisibleTokens] = useState<{ [key: string]: boolean }>({})
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
-  const [firebaseProjectId, setFirebaseProjectId] = useState("")
-  const [firebaseClientEmail, setFirebaseClientEmail] = useState("")
-  const [firebasePrivateKey, setFirebasePrivateKey] = useState("")
-  const [verifying, setVerifying] = useState(false)
-  const [verificationResult, setVerificationResult] = useState<{
-    success: boolean
-    message: string
-  } | null>(null)
-  const [firebaseCredentialsSaved, setFirebaseCredentialsSaved] = useState(false)
-  const [savingCredentials, setSavingCredentials] = useState(false)
-  const [creatingCustomToken, setCreatingCustomToken] = useState(false)
-  const [savedFirebaseConfig, setSavedFirebaseConfig] = useState<{
-    projectId: string
-    clientEmail: string
-    createdAt: string
-    verified: boolean
-  } | null>(null)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -71,7 +61,6 @@ export default function APITokensPage() {
     const parsedUser = JSON.parse(userData)
     setUser(parsedUser)
     fetchTokens(parsedUser.id)
-    checkFirebaseCredentials(parsedUser.id)
   }, [router])
 
   const fetchTokens = async (userId: number) => {
@@ -82,16 +71,17 @@ export default function APITokensPage() {
       console.log("[v0] Response status:", response.status)
 
       if (!response.ok) {
-        let errorData
-        const contentType = response.headers.get("content-type")
-        if (contentType && contentType.includes("application/json")) {
-          errorData = await response.json()
-        } else {
-          const text = await response.text()
-          errorData = { error: text }
+        let errorMessage = "Failed to fetch tokens"
+        try {
+          const errorData = await response.json()
+          console.error("[v0] Error response:", errorData)
+          errorMessage = errorData.error || errorMessage
+        } catch (jsonError) {
+          const errorText = await response.text()
+          console.error("[v0] Error response (text):", errorText)
+          errorMessage = errorText || errorMessage
         }
-        console.error("[v0] Error response:", errorData)
-        throw new Error(errorData.error || errorData.details || "Failed to fetch tokens")
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
@@ -128,7 +118,6 @@ export default function APITokensPage() {
       setTokens([data.token, ...tokens])
       setNewTokenName("")
       setShowDialog(false)
-      // Show the newly created token
       setVisibleTokens({ [data.token.id]: true })
     } catch (error) {
       console.error("[v0] Error creating token:", error)
@@ -174,143 +163,6 @@ export default function APITokensPage() {
     return `${token.substring(0, 10)}${"•".repeat(30)}${token.substring(token.length - 10)}`
   }
 
-  const handleVerifyFirebase = async () => {
-    if (!firebaseProjectId.trim() || !firebaseClientEmail.trim() || !firebasePrivateKey.trim()) {
-      setVerificationResult({
-        success: false,
-        message: "Please fill in all Firebase credentials",
-      })
-      return
-    }
-
-    setVerifying(true)
-    setVerificationResult(null)
-
-    try {
-      const response = await fetch("/api/firebase-verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: firebaseProjectId,
-          clientEmail: firebaseClientEmail,
-          privateKey: firebasePrivateKey,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        setVerificationResult({
-          success: true,
-          message: "Firebase connection verified successfully! Your website can access this database.",
-        })
-      } else {
-        setVerificationResult({
-          success: false,
-          message: data.error || "Failed to connect to Firebase. Please check your credentials.",
-        })
-      }
-    } catch (error) {
-      console.error("[v0] Error verifying Firebase:", error)
-      setVerificationResult({
-        success: false,
-        message: "An error occurred while verifying Firebase connection.",
-      })
-    } finally {
-      setVerifying(false)
-    }
-  }
-
-  const handleSaveFirebaseCredentials = async () => {
-    if (!user || !verificationResult?.success) return
-
-    setSavingCredentials(true)
-    try {
-      const response = await fetch("/api/firebase-credentials", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          projectId: firebaseProjectId,
-          clientEmail: firebaseClientEmail,
-          privateKey: firebasePrivateKey,
-          verified: true,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        setFirebaseCredentialsSaved(true)
-        alert("Firebase credentials saved successfully!")
-      } else {
-        alert(data.error || "Failed to save Firebase credentials")
-      }
-    } catch (error) {
-      console.error("[v0] Error saving Firebase credentials:", error)
-      alert("An error occurred while saving Firebase credentials")
-    } finally {
-      setSavingCredentials(false)
-    }
-  }
-
-  const handleCreateTokenWithUserFirebase = async () => {
-    if (!user) return
-
-    setCreatingCustomToken(true)
-    try {
-      const response = await fetch("/api/tokens/create-with-firebase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email,
-          tokenName: `Token ${tokens.length + 1}`,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        setNewlyCreatedToken(data.token)
-        setTokens([data.token, ...tokens])
-        setVisibleTokens({ [data.token.id]: true })
-        alert("Token created successfully in your Firebase database!")
-      } else {
-        alert(data.error || "Failed to create token")
-      }
-    } catch (error) {
-      console.error("[v0] Error creating token:", error)
-      alert("An error occurred while creating token")
-    } finally {
-      setCreatingCustomToken(false)
-    }
-  }
-
-  const checkFirebaseCredentials = async (userId: number) => {
-    try {
-      const response = await fetch(`/api/firebase-credentials?userId=${userId}`)
-      const data = await response.json()
-      if (data.success && data.hasCredentials) {
-        setFirebaseCredentialsSaved(true)
-        setFirebaseProjectId(data.credentials.projectId)
-        setFirebaseClientEmail(data.credentials.clientEmail)
-        setSavedFirebaseConfig({
-          projectId: data.credentials.projectId,
-          clientEmail: data.credentials.clientEmail,
-          createdAt: data.credentials.createdAt,
-          verified: data.credentials.verified,
-        })
-        setVerificationResult({
-          success: true,
-          message: "Your Firebase credentials are verified and saved.",
-        })
-      }
-    } catch (error) {
-      console.error("[v0] Error checking Firebase credentials:", error)
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -337,12 +189,6 @@ export default function APITokensPage() {
             <Link href="/dashboard">
               <Button variant="ghost" className="text-slate-300 hover:text-white">
                 Dashboard
-              </Button>
-            </Link>
-            <Link href="/dashboard/analytics">
-              <Button variant="ghost" className="text-slate-300 hover:text-white">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                View Analytics
               </Button>
             </Link>
             <div className="flex items-center gap-2 text-slate-300">
@@ -373,12 +219,6 @@ export default function APITokensPage() {
                 Dashboard
               </Button>
             </Link>
-            <Link href="/dashboard/analytics">
-              <Button variant="ghost" className="w-full text-slate-300">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                View Analytics
-              </Button>
-            </Link>
             <div className="flex items-center gap-2 text-slate-300 mb-3">
               {user?.image && (
                 <img
@@ -404,23 +244,61 @@ export default function APITokensPage() {
             <h2 className="text-3xl font-bold text-white mb-2">API Tokens</h2>
             <p className="text-slate-400">Manage your API keys for programmatic access</p>
           </div>
-          <Link href="/dashboard/analytics">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              View Analytics
-            </Button>
-          </Link>
+          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+            <DialogTrigger asChild>
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Create New Token
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-slate-800 border-slate-700">
+              <DialogHeader>
+                <DialogTitle className="text-white">Create New API Token</DialogTitle>
+                <DialogDescription className="text-slate-400">
+                  Generate a new API token for programmatic access to Shortner Pro APIs
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label htmlFor="tokenName" className="text-slate-300">
+                    Token Name
+                  </Label>
+                  <Input
+                    id="tokenName"
+                    placeholder="e.g., Production Server, Mobile App"
+                    value={newTokenName}
+                    onChange={(e) => setNewTokenName(e.target.value)}
+                    className="bg-slate-900 border-slate-600 text-white mt-2"
+                  />
+                </div>
+                <Button
+                  onClick={handleCreateToken}
+                  disabled={!newTokenName.trim() || creating}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {creating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Token"
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* New Token Alert */}
-        {/*  {newlyCreatedToken && (
+        {newlyCreatedToken && (
           <Alert className="mb-6 bg-emerald-900/20 border-emerald-700">
             <AlertCircle className="h-4 w-4 text-emerald-500" />
             <AlertDescription className="text-emerald-300">
               Token created successfully! Make sure to copy it now - you won't be able to see it again.
             </AlertDescription>
           </Alert>
-        )}*/}
+        )}
 
         {/* API Documentation Link */}
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
@@ -449,176 +327,8 @@ export default function APITokensPage() {
           </div>
         </Card>
 
-        {/* Firebase Connection Verification Card */}
-        <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
-          <div className="mb-4">
-            <h3 className="text-white font-semibold text-lg mb-2">
-              {firebaseCredentialsSaved ? "Firebase Connection - Connected ✓" : "Firebase Connection Setup"}
-            </h3>
-            <p className="text-slate-400 text-sm">
-              {firebaseCredentialsSaved
-                ? "Your Firebase credentials are saved and verified. You can now create tokens in your Firebase database."
-                : "Enter your Firebase credentials to verify and save them for token management."}
-            </p>
-          </div>
-
-          {firebaseCredentialsSaved && savedFirebaseConfig ? (
-            <div className="space-y-4">
-              <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
-                <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  Active Firebase Configuration
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-slate-500 text-sm mb-1">Project ID</p>
-                    <p className="text-slate-300 font-mono text-sm bg-slate-900 px-3 py-2 rounded">
-                      {savedFirebaseConfig.projectId}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-sm mb-1">Client Email</p>
-                    <p className="text-slate-300 font-mono text-sm bg-slate-900 px-3 py-2 rounded break-all">
-                      {savedFirebaseConfig.clientEmail}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-sm mb-1">Status</p>
-                    <p className="text-emerald-400 text-sm flex items-center gap-1">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Verified & Active
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-sm mb-1">Connected Since</p>
-                    <p className="text-slate-300 text-sm">
-                      {new Date(savedFirebaseConfig.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Alert className="bg-emerald-900/20 border-emerald-700">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                <AlertDescription className="text-emerald-300">
-                  Your website can access this Firebase database. Click "Create My Token" to generate an API token
-                  stored in your Firebase.
-                </AlertDescription>
-              </Alert>
-
-              <Link href="/dashboard/api-tokens/firebase-details">
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                  <Database className="w-4 h-4 mr-2" />
-                  View Details & Create Token
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="firebaseProjectId" className="text-slate-300">
-                  Firebase Project ID
-                </Label>
-                <Input
-                  id="firebaseProjectId"
-                  placeholder="your-project-id"
-                  value={firebaseProjectId}
-                  onChange={(e) => setFirebaseProjectId(e.target.value)}
-                  disabled={firebaseCredentialsSaved}
-                  className="bg-slate-900 border-slate-600 text-white mt-2"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="firebaseClientEmail" className="text-slate-300">
-                  Firebase Client Email
-                </Label>
-                <Input
-                  id="firebaseClientEmail"
-                  placeholder="firebase-adminsdk@your-project.iam.gserviceaccount.com"
-                  value={firebaseClientEmail}
-                  onChange={(e) => setFirebaseClientEmail(e.target.value)}
-                  disabled={firebaseCredentialsSaved}
-                  className="bg-slate-900 border-slate-600 text-white mt-2"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="firebasePrivateKey" className="text-slate-300">
-                  Firebase Private Key
-                </Label>
-                <Textarea
-                  id="firebasePrivateKey"
-                  placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
-                  value={firebasePrivateKey}
-                  onChange={(e) => setFirebasePrivateKey(e.target.value)}
-                  className="bg-slate-900 border-slate-600 text-white mt-2 min-h-[120px] font-mono text-sm"
-                />
-                <p className="text-slate-500 text-xs mt-1">
-                  Paste the entire private key including the BEGIN and END markers
-                </p>
-              </div>
-
-              {verificationResult && (
-                <Alert
-                  className={
-                    verificationResult.success ? "bg-emerald-900/20 border-emerald-700" : "bg-red-900/20 border-red-700"
-                  }
-                >
-                  {verificationResult.success ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
-                  )}
-                  <AlertDescription className={verificationResult.success ? "text-emerald-300" : "text-red-300"}>
-                    {verificationResult.message}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleVerifyFirebase}
-                  disabled={verifying}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {verifying ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    "Verify Firebase Connection"
-                  )}
-                </Button>
-
-                {verificationResult?.success && (
-                  <Button
-                    onClick={handleSaveFirebaseCredentials}
-                    disabled={savingCredentials}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                  >
-                    {savingCredentials ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      "Submit & Save Credentials"
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </Card>
-
         {/* Tokens List */}
-        {/* {tokens.length === 0 ? (
+        {tokens.length === 0 ? (
           <Card className="bg-slate-800/50 border-slate-700 p-12 text-center">
             <div className="w-16 h-16 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Key className="w-8 h-8 text-slate-500" />
@@ -706,7 +416,7 @@ export default function APITokensPage() {
               </Card>
             ))}
           </div>
-        )}*/}
+        )}
       </div>
     </div>
   )

@@ -1,88 +1,64 @@
-import { db, COLLECTIONS } from "./firebase"
-
-// Web Crypto API is available globally in modern Node.js and browsers
-const cryptoLib = globalThis.crypto
+import { sql } from "./db"
+import { crypto } from "webcrypto"
 
 export interface APIToken {
-  id: string
+  id: number
   userId: number
   userEmail: string
   token: string
   name: string
   createdAt: string
   lastUsedAt?: string
+  revokedAt?: string
   isActive: boolean
   usageCount: number
-  rateLimit: number // requests per minute
+  rateLimit: number
 }
 
 export function generateAPIToken(): string {
   const prefix = "sp_" // Shortner Pro prefix
   const array = new Uint8Array(32)
-  cryptoLib.getRandomValues(array)
+  crypto.getRandomValues(array)
   const token = Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("")
   return `${prefix}${token}`
 }
 
-export async function createAPIToken(userId: number, firebaseAppID: string, tokenName: string,userEmail: string): Promise<APIToken> {
+export async function createAPIToken(userId: number, userEmail: string, tokenName: string): Promise<APIToken> {
   const token = generateAPIToken()
-  const apiToken: APIToken = {
-    id: token,
-    userId,
-    firebaseAppID,
-    token,
-    name: tokenName,
-    createdAt: new Date().toISOString(),
-    isActive: true,
-    usageCount: 0,
-    rateLimit: 60, // 60 requests per minute by default
-  }
 
-  // Save to Firestore
-  await db.collection(COLLECTIONS.API_TOKENS).doc(token).set(apiToken)
+  const result = await sql`
+    INSERT INTO api_tokens (token, user_id, user_email, name, created_at, is_active, usage_count, rate_limit)
+    VALUES (${token}, ${userId}, ${userEmail}, ${tokenName}, NOW(), true, 0, 60)
+    RETURNING id, token, user_id as "userId", user_email as "userEmail", name, 
+              created_at as "createdAt", last_used_at as "lastUsedAt", revoked_at as "revokedAt",
+              is_active as "isActive", usage_count as "usageCount", rate_limit as "rateLimit"
+  `
 
-  // Also save user info to api_users collection
-  const userRef = db.collection(COLLECTIONS.API_USERS).doc(userId.toString())
-  const userDoc = await userRef.get()
-
-  if (userDoc.exists) {
-    // Update existing user
-    await userRef.update({
-      email: userEmail,
-      updatedAt: new Date().toISOString(),
-    })
-  } else {
-    // Create new user
-    await userRef.set({
-      userId,
-      email: userEmail,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
-  }
-
-  return apiToken
+  return result[0] as APIToken
 }
 
 export async function validateAPIToken(token: string): Promise<APIToken | null> {
   try {
-    const tokenDoc = await db.collection(COLLECTIONS.API_TOKENS).doc(token).get()
+    const result = await sql`
+      SELECT id, token, user_id as "userId", user_email as "userEmail", name, 
+             created_at as "createdAt", last_used_at as "lastUsedAt", revoked_at as "revokedAt",
+             is_active as "isActive", usage_count as "usageCount", rate_limit as "rateLimit"
+      FROM api_tokens
+      WHERE token = ${token} AND is_active = true
+    `
 
-    if (!tokenDoc.exists) {
+    if (result.length === 0) {
       return null
     }
 
-    const apiToken = tokenDoc.data() as APIToken
-
-    if (!apiToken.isActive) {
-      return null
-    }
+    const apiToken = result[0] as APIToken
 
     // Update last used time and usage count
-    await tokenDoc.ref.update({
-      lastUsedAt: new Date().toISOString(),
-      usageCount: (apiToken.usageCount || 0) + 1,
-    })
+    await sql`
+      UPDATE api_tokens
+      SET last_used_at = NOW(), usage_count = usage_count + 1
+      WHERE token = ${token}
+    `
 
     return apiToken
   } catch (error) {
@@ -93,23 +69,21 @@ export async function validateAPIToken(token: string): Promise<APIToken | null> 
 
 export async function getUserAPITokens(userId: number): Promise<APIToken[]> {
   try {
-    console.log("[v0] Fetching tokens for user:", userId, "from Firestore")
+    console.log("[v0] Fetching tokens for user:", userId)
 
-    const collection = db.collection(COLLECTIONS.API_TOKENS)
-    console.log("[v0] Collection reference created")
+    console.log("[v0] Executing SQL query...")
+    const result = await sql`
+      SELECT id, token, user_id as "userId", user_email as "userEmail", name, 
+             created_at as "createdAt", last_used_at as "lastUsedAt", revoked_at as "revokedAt",
+             is_active as "isActive", usage_count as "usageCount", rate_limit as "rateLimit"
+      FROM api_tokens
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+    `
 
-    const snapshot = await collection.where("userId", "==", userId).get()
-    console.log("[v0] Query executed, found", snapshot.docs.length, "tokens")
-
-    const tokens = snapshot.docs.map((doc) => {
-      const data = doc.data() as APIToken
-      console.log("[v0] Token data:", data.name, data.createdAt)
-      return data
-    })
-
-    tokens.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-    return tokens
+    console.log("[v0] Query executed, found", result.length, "tokens")
+    console.log("[v0] Result:", JSON.stringify(result))
+    return result as APIToken[]
   } catch (error) {
     console.error("[v0] Error fetching user tokens:", error)
     if (error instanceof Error) {
@@ -123,10 +97,11 @@ export async function getUserAPITokens(userId: number): Promise<APIToken[]> {
 
 export async function revokeAPIToken(token: string): Promise<boolean> {
   try {
-    await db.collection(COLLECTIONS.API_TOKENS).doc(token).update({
-      isActive: false,
-      revokedAt: new Date().toISOString(),
-    })
+    await sql`
+      UPDATE api_tokens
+      SET is_active = false, revoked_at = NOW()
+      WHERE token = ${token}
+    `
     return true
   } catch (error) {
     console.error("[v0] Error revoking token:", error)
@@ -136,13 +111,10 @@ export async function revokeAPIToken(token: string): Promise<boolean> {
 
 export async function logAPIUsage(token: string, endpoint: string, method: string, statusCode: number): Promise<void> {
   try {
-    await db.collection(COLLECTIONS.API_USAGE).add({
-      token,
-      endpoint,
-      method,
-      statusCode,
-      timestamp: new Date().toISOString(),
-    })
+    await sql`
+      INSERT INTO api_usage_logs (token, endpoint, method, status_code, timestamp)
+      VALUES (${token}, ${endpoint}, ${method}, ${statusCode}, NOW())
+    `
   } catch (error) {
     console.error("[v0] Error logging API usage:", error)
   }

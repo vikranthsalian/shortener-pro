@@ -112,11 +112,7 @@ export default function LoginPage() {
       // Store user data in localStorage
       localStorage.setItem("user", JSON.stringify(data.user))
       // Redirect to dashboard
-      if (data.user.is_super_admin) {
-        router.push("/super-admin")
-      } else {
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
     } catch (err) {
       console.error("[v0] Google sign-in error:", err)
       setError("Failed to sign in with Google")
@@ -145,12 +141,7 @@ export default function LoginPage() {
 
       const data = await response.json()
       localStorage.setItem("user", JSON.stringify(data.user))
-
-      if (data.user.is_super_admin) {
-        router.push("/super-admin")
-      } else {
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
     } catch (err) {
       setError("An error occurred. Please try again.")
       setLoading(false)
