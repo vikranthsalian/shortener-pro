@@ -39,8 +39,8 @@ export async function createAPIToken(
 
     console.log("[v0] Executing SQL INSERT query...")
     const result = await sql`
-      INSERT INTO api_tokens (user_id, user_email, name, token, rate_limit)
-      VALUES (${userId}, ${userEmail}, ${name}, ${token}, ${rateLimit})
+      INSERT INTO api_tokens (user_id, name, token, rate_limit)
+      VALUES (${userId}, ${name}, ${token}, ${rateLimit})
       RETURNING *
     `
 
