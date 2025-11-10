@@ -76,6 +76,12 @@ export default function APITokensPage() {
   const [firebaseCredentialsSaved, setFirebaseCredentialsSaved] = useState(false)
   const [savingCredentials, setSavingCredentials] = useState(false)
   const [creatingCustomToken, setCreatingCustomToken] = useState(false)
+  const [savedFirebaseConfig, setSavedFirebaseConfig] = useState<{
+    projectId: string
+    clientEmail: string
+    createdAt: string
+    verified: boolean
+  } | null>(null)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -311,6 +317,12 @@ export default function APITokensPage() {
         setFirebaseCredentialsSaved(true)
         setFirebaseProjectId(data.credentials.projectId)
         setFirebaseClientEmail(data.credentials.clientEmail)
+        setSavedFirebaseConfig({
+          projectId: data.credentials.projectId,
+          clientEmail: data.credentials.clientEmail,
+          createdAt: data.credentials.createdAt,
+          verified: data.credentials.verified,
+        })
         setVerificationResult({
           success: true,
           message: "Your Firebase credentials are verified and saved.",
@@ -461,44 +473,112 @@ export default function APITokensPage() {
         {/* Firebase Connection Verification Card */}
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
           <div className="mb-4">
-            <h3 className="text-white font-semibold text-lg mb-2">Firebase Connection Setup</h3>
+            <h3 className="text-white font-semibold text-lg mb-2">
+              {firebaseCredentialsSaved ? "Firebase Connection - Connected ✓" : "Firebase Connection Setup"}
+            </h3>
             <p className="text-slate-400 text-sm">
               {firebaseCredentialsSaved
-                ? "Your Firebase credentials are saved. You can now create tokens in your Firebase database."
+                ? "Your Firebase credentials are saved and verified. You can now create tokens in your Firebase database."
                 : "Enter your Firebase credentials to verify and save them for token management."}
             </p>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="firebaseProjectId" className="text-slate-300">
-                Firebase Project ID
-              </Label>
-              <Input
-                id="firebaseProjectId"
-                placeholder="your-project-id"
-                value={firebaseProjectId}
-                onChange={(e) => setFirebaseProjectId(e.target.value)}
-                disabled={firebaseCredentialsSaved}
-                className="bg-slate-900 border-slate-600 text-white mt-2"
-              />
-            </div>
+          {firebaseCredentialsSaved && savedFirebaseConfig ? (
+            <div className="space-y-4">
+              <div className="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  Active Firebase Configuration
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-slate-500 text-sm mb-1">Project ID</p>
+                    <p className="text-slate-300 font-mono text-sm bg-slate-900 px-3 py-2 rounded">
+                      {savedFirebaseConfig.projectId}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-sm mb-1">Client Email</p>
+                    <p className="text-slate-300 font-mono text-sm bg-slate-900 px-3 py-2 rounded break-all">
+                      {savedFirebaseConfig.clientEmail}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-sm mb-1">Status</p>
+                    <p className="text-emerald-400 text-sm flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Verified & Active
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-sm mb-1">Connected Since</p>
+                    <p className="text-slate-300 text-sm">
+                      {new Date(savedFirebaseConfig.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <div>
-              <Label htmlFor="firebaseClientEmail" className="text-slate-300">
-                Firebase Client Email
-              </Label>
-              <Input
-                id="firebaseClientEmail"
-                placeholder="firebase-adminsdk@your-project.iam.gserviceaccount.com"
-                value={firebaseClientEmail}
-                onChange={(e) => setFirebaseClientEmail(e.target.value)}
-                disabled={firebaseCredentialsSaved}
-                className="bg-slate-900 border-slate-600 text-white mt-2"
-              />
-            </div>
+              <Alert className="bg-emerald-900/20 border-emerald-700">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <AlertDescription className="text-emerald-300">
+                  Your website can access this Firebase database. Click "Create My Token" to generate an API token
+                  stored in your Firebase.
+                </AlertDescription>
+              </Alert>
 
-            {!firebaseCredentialsSaved && (
+              <Button
+                onClick={handleCreateTokenWithUserFirebase}
+                disabled={creatingCustomToken}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+              >
+                {creatingCustomToken ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating Token in Your Firebase...
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-4 h-4 mr-2" />
+                    Create My Token
+                  </>
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="firebaseProjectId" className="text-slate-300">
+                  Firebase Project ID
+                </Label>
+                <Input
+                  id="firebaseProjectId"
+                  placeholder="your-project-id"
+                  value={firebaseProjectId}
+                  onChange={(e) => setFirebaseProjectId(e.target.value)}
+                  disabled={firebaseCredentialsSaved}
+                  className="bg-slate-900 border-slate-600 text-white mt-2"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="firebaseClientEmail" className="text-slate-300">
+                  Firebase Client Email
+                </Label>
+                <Input
+                  id="firebaseClientEmail"
+                  placeholder="firebase-adminsdk@your-project.iam.gserviceaccount.com"
+                  value={firebaseClientEmail}
+                  onChange={(e) => setFirebaseClientEmail(e.target.value)}
+                  disabled={firebaseCredentialsSaved}
+                  className="bg-slate-900 border-slate-600 text-white mt-2"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="firebasePrivateKey" className="text-slate-300">
                   Firebase Private Key
@@ -514,83 +594,59 @@ export default function APITokensPage() {
                   Paste the entire private key including the BEGIN and END markers
                 </p>
               </div>
-            )}
 
-            {verificationResult && (
-              <Alert
-                className={
-                  verificationResult.success ? "bg-emerald-900/20 border-emerald-700" : "bg-red-900/20 border-red-700"
-                }
-              >
-                {verificationResult.success ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                <AlertDescription className={verificationResult.success ? "text-emerald-300" : "text-red-300"}>
-                  {verificationResult.message}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="flex gap-3">
-              {!firebaseCredentialsSaved && (
-                <>
-                  <Button
-                    onClick={handleVerifyFirebase}
-                    disabled={verifying}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    {verifying ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      "Verify Firebase Connection"
-                    )}
-                  </Button>
-
-                  {verificationResult?.success && (
-                    <Button
-                      onClick={handleSaveFirebaseCredentials}
-                      disabled={savingCredentials}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                    >
-                      {savingCredentials ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        "Submit & Save Credentials"
-                      )}
-                    </Button>
+              {verificationResult && (
+                <Alert
+                  className={
+                    verificationResult.success ? "bg-emerald-900/20 border-emerald-700" : "bg-red-900/20 border-red-700"
+                  }
+                >
+                  {verificationResult.success ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-500" />
                   )}
-                </>
+                  <AlertDescription className={verificationResult.success ? "text-emerald-300" : "text-red-300"}>
+                    {verificationResult.message}
+                  </AlertDescription>
+                </Alert>
               )}
 
-              {firebaseCredentialsSaved && (
+              <div className="flex gap-3">
                 <Button
-                  onClick={handleCreateTokenWithUserFirebase}
-                  disabled={creatingCustomToken}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={handleVerifyFirebase}
+                  disabled={verifying}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
                 >
-                  {creatingCustomToken ? (
+                  {verifying ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating Token...
+                      Verifying...
                     </>
                   ) : (
-                    <>
-                      <Key className="w-4 h-4 mr-2" />
-                      Create My Token
-                    </>
+                    "Verify Firebase Connection"
                   )}
                 </Button>
-              )}
+
+                {verificationResult?.success && (
+                  <Button
+                    onClick={handleSaveFirebaseCredentials}
+                    disabled={savingCredentials}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    {savingCredentials ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Submit & Save Credentials"
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </Card>
 
         {/* API Documentation Link */}
