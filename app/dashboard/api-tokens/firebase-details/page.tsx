@@ -187,9 +187,38 @@ export default function FirebaseDetailsPage() {
         setNewTokenName("")
         setShowCreateDialog(false)
 
-        await loadFirebaseDetails(user.id)
+        console.log("[v0] Token created, starting data migration...")
 
-        alert("Token created successfully in your Firebase database!")
+        // Fetch Firebase credentials to get private key
+        const credResponse = await fetch(`/api/firebase-credentials?userId=${user.id}`)
+        const credData = await credResponse.json()
+
+        if (credData.success && credData.credentials) {
+          const migrationResponse = await fetch("/api/migrate-to-firebase", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: user.id,
+              firebaseProjectId: savedFirebaseConfig.projectId,
+              firebaseClientEmail: savedFirebaseConfig.clientEmail,
+              firebasePrivateKey: credData.credentials.privateKey,
+            }),
+          })
+
+          const migrationData = await migrationResponse.json()
+
+          if (migrationResponse.ok) {
+            console.log("[v0] Migration successful:", migrationData)
+            alert(
+              `Token created and data migrated successfully!\n\nMigrated: ${migrationData.stats.urls} URLs, ${migrationData.stats.analytics} analytics records`,
+            )
+          } else {
+            console.error("[v0] Migration failed:", migrationData)
+            alert(`Token created but migration failed: ${migrationData.error}`)
+          }
+        }
+
+        await loadFirebaseDetails(user.id)
       } else {
         alert(data.error || "Failed to create token")
       }
@@ -261,7 +290,7 @@ export default function FirebaseDetailsPage() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedTokens.length === paginatedTokens.length) {
+    if (selectedTokens.length === paginatedTokens.length && paginatedTokens.length > 0) {
       setSelectedTokens([])
     } else {
       setSelectedTokens(paginatedTokens.map((t) => t.id))

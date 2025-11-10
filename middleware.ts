@@ -55,6 +55,7 @@ function isPublicAPIRoute(path: string): boolean {
     "/api/super-admin/firebase-credentials",
     "/api/setup-super-admin",
     "/api/super-admin/set-password",
+    "/api/migrate-to-firebase", // Added migration endpoint to public routes
   ]
 
   return publicRoutes.some((route) => path.startsWith(route))

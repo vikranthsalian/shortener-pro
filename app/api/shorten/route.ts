@@ -3,6 +3,7 @@ import { sql } from "@/lib/db"
 import { generateShortCode, isValidUrl } from "@/lib/short-code-generator"
 import { runMigration } from "@/lib/migrate"
 import { rateLimit } from "@/lib/rate-limit"
+import { syncLinkToUserFirebase } from "@/lib/firebase-sync"
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,10 +48,30 @@ export async function POST(request: NextRequest) {
     const result = await sql`
       INSERT INTO urls (short_code, original_url, title, description, user_id, expiry_date) 
       VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null}, ${userId || null}, ${expiryDate ? expiryDate.toISOString() : null})
-      RETURNING id, short_code, original_url, created_at, expiry_date
+      RETURNING id, short_code, original_url, title, description, user_id, created_at, expiry_date
     `
 
     const url = result[0]
+
+    if (userId) {
+      console.log("[v0] Attempting to sync new link to user's Firebase")
+      const syncResult = await syncLinkToUserFirebase({
+        id: url.id,
+        userId: userId,
+        shortCode: url.short_code,
+        originalUrl: url.original_url,
+        title: url.title,
+        description: url.description,
+        createdAt: url.created_at,
+        expiryDate: url.expiry_date,
+      })
+
+      if (syncResult.synced) {
+        console.log("[v0] Link successfully synced to user's Firebase")
+      } else {
+        console.log("[v0] Link not synced to Firebase:", syncResult.reason)
+      }
+    }
 
     return NextResponse.json({
       id: url.id,
