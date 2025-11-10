@@ -13,7 +13,7 @@ export async function syncLinkToUserFirebase(linkData: {
   expiryDate?: string | null
 }) {
   try {
-    if (!linkData.userId || linkData.userId.trim() === "") {
+    if (!linkData.userId || linkData.userId === "") {
       console.log("[v0] Invalid userId, skipping Firebase sync")
       return { synced: false, reason: "invalid_user_id" }
     }
