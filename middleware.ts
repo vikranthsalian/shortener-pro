@@ -50,6 +50,7 @@ function isPublicAPIRoute(path: string): boolean {
     "/api/firebase-credentials",
     "/api/shorten", // Added to allow link creation from website
     "/api/user/links", // Added to allow fetching user links from website
+    "/api/analytics", 
   ]
 
   return publicRoutes.some((route) => path.startsWith(route))
