@@ -73,6 +73,9 @@ export default function APITokensPage() {
     success: boolean
     message: string
   } | null>(null)
+  const [firebaseCredentialsSaved, setFirebaseCredentialsSaved] = useState(false)
+  const [savingCredentials, setSavingCredentials] = useState(false)
+  const [creatingCustomToken, setCreatingCustomToken] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -84,6 +87,7 @@ export default function APITokensPage() {
     const parsedUser = JSON.parse(userData)
     setUser(parsedUser)
     fetchTokens(parsedUser.id)
+    checkFirebaseCredentials(parsedUser.id)
   }, [router])
 
   const fetchTokens = async (userId: number) => {
@@ -233,6 +237,90 @@ export default function APITokensPage() {
     }
   }
 
+  const handleSaveFirebaseCredentials = async () => {
+    if (!user || !verificationResult?.success) return
+
+    setSavingCredentials(true)
+    try {
+      const response = await fetch("/api/firebase-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          projectId: firebaseProjectId,
+          clientEmail: firebaseClientEmail,
+          privateKey: firebasePrivateKey,
+          verified: true,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setFirebaseCredentialsSaved(true)
+        alert("Firebase credentials saved successfully!")
+      } else {
+        alert(data.error || "Failed to save Firebase credentials")
+      }
+    } catch (error) {
+      console.error("[v0] Error saving Firebase credentials:", error)
+      alert("An error occurred while saving Firebase credentials")
+    } finally {
+      setSavingCredentials(false)
+    }
+  }
+
+  const handleCreateTokenWithUserFirebase = async () => {
+    if (!user) return
+
+    setCreatingCustomToken(true)
+    try {
+      const response = await fetch("/api/tokens/create-with-firebase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email,
+          tokenName: `Token ${tokens.length + 1}`,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setNewlyCreatedToken(data.token)
+        setTokens([data.token, ...tokens])
+        setVisibleTokens({ [data.token.id]: true })
+        alert("Token created successfully in your Firebase database!")
+      } else {
+        alert(data.error || "Failed to create token")
+      }
+    } catch (error) {
+      console.error("[v0] Error creating token:", error)
+      alert("An error occurred while creating token")
+    } finally {
+      setCreatingCustomToken(false)
+    }
+  }
+
+  const checkFirebaseCredentials = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/firebase-credentials?userId=${userId}`)
+      const data = await response.json()
+      if (data.success && data.hasCredentials) {
+        setFirebaseCredentialsSaved(true)
+        setFirebaseProjectId(data.credentials.projectId)
+        setFirebaseClientEmail(data.credentials.clientEmail)
+        setVerificationResult({
+          success: true,
+          message: "Your Firebase credentials are verified and saved.",
+        })
+      }
+    } catch (error) {
+      console.error("[v0] Error checking Firebase credentials:", error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
@@ -373,9 +461,11 @@ export default function APITokensPage() {
         {/* Firebase Connection Verification Card */}
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
           <div className="mb-4">
-            <h3 className="text-white font-semibold text-lg mb-2">Firebase Connection Verification</h3>
+            <h3 className="text-white font-semibold text-lg mb-2">Firebase Connection Setup</h3>
             <p className="text-slate-400 text-sm">
-              Enter your Firebase credentials to verify if this website can access your Firestore database.
+              {firebaseCredentialsSaved
+                ? "Your Firebase credentials are saved. You can now create tokens in your Firebase database."
+                : "Enter your Firebase credentials to verify and save them for token management."}
             </p>
           </div>
 
@@ -389,6 +479,7 @@ export default function APITokensPage() {
                 placeholder="your-project-id"
                 value={firebaseProjectId}
                 onChange={(e) => setFirebaseProjectId(e.target.value)}
+                disabled={firebaseCredentialsSaved}
                 className="bg-slate-900 border-slate-600 text-white mt-2"
               />
             </div>
@@ -402,25 +493,28 @@ export default function APITokensPage() {
                 placeholder="firebase-adminsdk@your-project.iam.gserviceaccount.com"
                 value={firebaseClientEmail}
                 onChange={(e) => setFirebaseClientEmail(e.target.value)}
+                disabled={firebaseCredentialsSaved}
                 className="bg-slate-900 border-slate-600 text-white mt-2"
               />
             </div>
 
-            <div>
-              <Label htmlFor="firebasePrivateKey" className="text-slate-300">
-                Firebase Private Key
-              </Label>
-              <Textarea
-                id="firebasePrivateKey"
-                placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
-                value={firebasePrivateKey}
-                onChange={(e) => setFirebasePrivateKey(e.target.value)}
-                className="bg-slate-900 border-slate-600 text-white mt-2 min-h-[120px] font-mono text-sm"
-              />
-              <p className="text-slate-500 text-xs mt-1">
-                Paste the entire private key including the BEGIN and END markers
-              </p>
-            </div>
+            {!firebaseCredentialsSaved && (
+              <div>
+                <Label htmlFor="firebasePrivateKey" className="text-slate-300">
+                  Firebase Private Key
+                </Label>
+                <Textarea
+                  id="firebasePrivateKey"
+                  placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
+                  value={firebasePrivateKey}
+                  onChange={(e) => setFirebasePrivateKey(e.target.value)}
+                  className="bg-slate-900 border-slate-600 text-white mt-2 min-h-[120px] font-mono text-sm"
+                />
+                <p className="text-slate-500 text-xs mt-1">
+                  Paste the entire private key including the BEGIN and END markers
+                </p>
+              </div>
+            )}
 
             {verificationResult && (
               <Alert
@@ -439,20 +533,63 @@ export default function APITokensPage() {
               </Alert>
             )}
 
-            <Button
-              onClick={handleVerifyFirebase}
-              disabled={verifying}
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
-            >
-              {verifying ? (
+            <div className="flex gap-3">
+              {!firebaseCredentialsSaved && (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Verifying Connection...
+                  <Button
+                    onClick={handleVerifyFirebase}
+                    disabled={verifying}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    {verifying ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      "Verify Firebase Connection"
+                    )}
+                  </Button>
+
+                  {verificationResult?.success && (
+                    <Button
+                      onClick={handleSaveFirebaseCredentials}
+                      disabled={savingCredentials}
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      {savingCredentials ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Submit & Save Credentials"
+                      )}
+                    </Button>
+                  )}
                 </>
-              ) : (
-                "Verify Firebase Connection"
               )}
-            </Button>
+
+              {firebaseCredentialsSaved && (
+                <Button
+                  onClick={handleCreateTokenWithUserFirebase}
+                  disabled={creatingCustomToken}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {creatingCustomToken ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating Token...
+                    </>
+                  ) : (
+                    <>
+                      <Key className="w-4 h-4 mr-2" />
+                      Create My Token
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
 
