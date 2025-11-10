@@ -204,3 +204,38 @@ export async function recordClickInFirebase(
     console.error("[v0] Error recording click in Firebase:", error)
   }
 }
+
+export async function findLinkInAnyFirebase(shortCode: string) {
+  try {
+    // Get all users with Firebase credentials
+    const credentialsSnapshot = await db.collection("user_firebase_credentials").get()
+
+    if (credentialsSnapshot.empty) {
+      console.log("[v0] No Firebase credentials found in system")
+      return null
+    }
+
+    // Try each user's Firebase database
+    for (const credDoc of credentialsSnapshot.docs) {
+      const userId = credDoc.id
+      console.log("[v0] Checking Firebase for user:", userId)
+
+      try {
+        const link = await getLinkFromFirebase(userId, shortCode)
+        if (link) {
+          console.log("[v0] Link found in Firebase for user:", userId)
+          return { ...link, userId }
+        }
+      } catch (error) {
+        console.error(`[v0] Error checking Firebase for user ${userId}:`, error)
+        // Continue to next user
+      }
+    }
+
+    console.log("[v0] Link not found in any Firebase database")
+    return null
+  } catch (error) {
+    console.error("[v0] Error finding link in Firebase:", error)
+    return null
+  }
+}

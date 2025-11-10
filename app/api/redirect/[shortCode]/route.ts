@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { runMigration } from "@/lib/migrate"
 import { parseUserAgent, getLocationFromIP } from "@/lib/device-detection"
-import { getLinkFromFirebase, recordClickInFirebase } from "@/lib/firebase-sync"
+import { recordClickInFirebase, findLinkInAnyFirebase } from "@/lib/firebase-sync"
 
 export async function GET(request: NextRequest, { params }: { params: { shortCode: string } }) {
   try {
@@ -10,23 +10,18 @@ export async function GET(request: NextRequest, { params }: { params: { shortCod
 
     const { shortCode } = params
 
-    const ownerResult = await sql`
-      SELECT user_id FROM urls WHERE short_code = ${shortCode} LIMIT 1
-    `
-
-    let userId = ownerResult.length > 0 ? ownerResult[0].user_id : null
     let url: any = null
+    let userId: string | null = null
     let fromFirebase = false
 
-    if (userId) {
-      console.log("[v0] Checking Firebase for link:", shortCode, "userId:", userId)
-      const firebaseLink = await getLinkFromFirebase(userId, shortCode)
+    console.log("[v0] Searching Firebase databases for link:", shortCode)
+    const firebaseLink = await findLinkInAnyFirebase(shortCode)
 
-      if (firebaseLink) {
-        console.log("[v0] Link found in Firebase")
-        url = firebaseLink
-        fromFirebase = true
-      }
+    if (firebaseLink) {
+      console.log("[v0] Link found in Firebase")
+      url = firebaseLink
+      userId = firebaseLink.userId
+      fromFirebase = true
     }
 
     if (!url) {
@@ -42,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: { shortCod
       }
 
       url = result[0]
-      userId = url.user_id
+      userId = url.user_id?.toString() || null
     }
 
     // Check expiry
