@@ -31,6 +31,7 @@ export async function createAPIToken(userId: number, firebaseAppID: string, toke
     userId,
     firebaseAppID,
     token,
+    userEmail,
     name: tokenName,
     createdAt: new Date().toISOString(),
     isActive: true,
