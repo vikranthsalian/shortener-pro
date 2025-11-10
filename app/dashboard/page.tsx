@@ -225,6 +225,12 @@ export default function Dashboard() {
                 API Tokens
               </Button>
             </Link>
+            <Link href="/dashboard/analytics">
+              <Button variant="ghost" className="text-slate-300 hover:text-white">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </Button>
+            </Link>
             <div className="flex items-center gap-2 text-slate-300">
               {user?.image && (
                 <img
@@ -254,6 +260,12 @@ export default function Dashboard() {
               <Button variant="ghost" className="w-full text-slate-300">
                 <Key className="w-4 h-4 mr-2" />
                 API Tokens
+              </Button>
+            </Link>
+            <Link href="/dashboard/analytics">
+              <Button variant="ghost" className="w-full text-slate-300">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
               </Button>
             </Link>
             <div className="flex items-center gap-2 text-slate-300 mb-3">

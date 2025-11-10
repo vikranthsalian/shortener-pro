@@ -6,31 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Loader2,
-  Copy,
-  Trash2,
-  Key,
-  Plus,
-  LogOut,
-  Menu,
-  X,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  CheckCircle2,
-  XCircle,
-  Database,
-} from "lucide-react"
+import { Loader2, Key, LogOut, Menu, X, CheckCircle2, XCircle, Database, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -362,6 +339,12 @@ export default function APITokensPage() {
                 Dashboard
               </Button>
             </Link>
+            <Link href="/dashboard/analytics">
+              <Button variant="ghost" className="text-slate-300 hover:text-white">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                View Analytics
+              </Button>
+            </Link>
             <div className="flex items-center gap-2 text-slate-300">
               {user?.image && (
                 <img
@@ -390,6 +373,12 @@ export default function APITokensPage() {
                 Dashboard
               </Button>
             </Link>
+            <Link href="/dashboard/analytics">
+              <Button variant="ghost" className="w-full text-slate-300">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                View Analytics
+              </Button>
+            </Link>
             <div className="flex items-center gap-2 text-slate-300 mb-3">
               {user?.image && (
                 <img
@@ -415,50 +404,12 @@ export default function APITokensPage() {
             <h2 className="text-3xl font-bold text-white mb-2">API Tokens</h2>
             <p className="text-slate-400">Manage your API keys for programmatic access</p>
           </div>
-        {/*   <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogTrigger asChild>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Create New Token
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-700">
-              <DialogHeader>
-                <DialogTitle className="text-white">Create New API Token</DialogTitle>
-                <DialogDescription className="text-slate-400">
-                  Generate a new API token for programmatic access to Shortner Pro APIs
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label htmlFor="tokenName" className="text-slate-300">
-                    Token Name
-                  </Label>
-                  <Input
-                    id="tokenName"
-                    placeholder="e.g., Production Server, Mobile App"
-                    value={newTokenName}
-                    onChange={(e) => setNewTokenName(e.target.value)}
-                    className="bg-slate-900 border-slate-600 text-white mt-2"
-                  />
-                </div>
-                <Button
-                  onClick={handleCreateToken}
-                  disabled={!newTokenName.trim() || creating}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {creating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Token"
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>*/}
+          <Link href="/dashboard/analytics">
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              View Analytics
+            </Button>
+          </Link>
         </div>
 
         {/* New Token Alert */}
@@ -667,7 +618,7 @@ export default function APITokensPage() {
         </Card>
 
         {/* Tokens List */}
-       {/* {tokens.length === 0 ? (
+        {/* {tokens.length === 0 ? (
           <Card className="bg-slate-800/50 border-slate-700 p-12 text-center">
             <div className="w-16 h-16 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Key className="w-8 h-8 text-slate-500" />
