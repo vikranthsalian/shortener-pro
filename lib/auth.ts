@@ -5,6 +5,7 @@ export interface User {
   id: number
   email: string
   created_at: string
+  is_super_admin?: boolean
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -19,7 +20,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export async function getUserByEmail(email: string): Promise<User | null> {
   try {
     const result = await sql`
-      SELECT id, email, created_at FROM users WHERE email = ${email}
+      SELECT id, email, created_at, is_super_admin FROM users WHERE email = ${email}
     `
     return result[0] || null
   } catch (error) {
@@ -42,7 +43,7 @@ export async function createUser(email: string, password: string): Promise<User>
 export async function authenticateUser(email: string, password: string): Promise<User | null> {
   try {
     const result = await sql`
-      SELECT id, email, password_hash, created_at FROM users WHERE email = ${email}
+      SELECT id, email, password_hash, created_at, is_super_admin FROM users WHERE email = ${email}
     `
     const user = result[0]
     if (!user) return null
@@ -54,6 +55,7 @@ export async function authenticateUser(email: string, password: string): Promise
       id: user.id,
       email: user.email,
       created_at: user.created_at,
+      is_super_admin: user.is_super_admin || false,
     }
   } catch (error) {
     console.error("[v0] Authentication error:", error)
@@ -64,7 +66,7 @@ export async function authenticateUser(email: string, password: string): Promise
 export async function getUserByGoogleId(googleId: string): Promise<User | null> {
   try {
     const result = await sql`
-      SELECT id, email, created_at FROM users WHERE google_id = ${googleId}
+      SELECT id, email, created_at, is_super_admin FROM users WHERE google_id = ${googleId}
     `
     return result[0] || null
   } catch (error) {
@@ -103,4 +105,16 @@ export async function getOrCreateGoogleUser(
 
   // Create new user
   return createOAuthUser(email, googleId, name, image)
+}
+
+export async function isSuperAdmin(email: string): Promise<boolean> {
+  try {
+    const result = await sql`
+      SELECT is_super_admin FROM users WHERE email = ${email}
+    `
+    return result[0]?.is_super_admin || false
+  } catch (error) {
+    console.error("[v0] Error checking super admin:", error)
+    return false
+  }
 }
