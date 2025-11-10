@@ -80,12 +80,14 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] User data migrated")
 
-    // Migrate URLs
     let migratedUrls = 0
     for (const url of urls) {
+      const docId = `${userId}_${url.short_code}`
       await userDb
         .collection("urls")
-        .doc(url.id.toString())
+        .doc(userId.toString())
+        .collection("links")
+        .doc(docId)
         .set({
           urlId: url.id,
           userId: userId,
@@ -106,10 +108,11 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] URLs migrated:", migratedUrls)
 
-    // Migrate analytics
     let migratedAnalytics = 0
     for (const analytic of analytics) {
       await userDb
+        .collection("urls")
+        .doc(userId.toString())
         .collection("analytics")
         .doc(analytic.id.toString())
         .set({

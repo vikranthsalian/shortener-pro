@@ -105,14 +105,15 @@ export async function syncLinkToUserFirebase(linkData: {
       isActive: true,
     }
 
-    console.log("[v0] Writing link document to collection 'urls'")
-    const docRef = await userDb.collection("urls").add(linkDocument)
+    const docId = `${linkData.userId}_${linkData.shortCode}`
+    console.log("[v0] Writing link document to urls collection with ID:", docId)
+    await userDb.collection("urls").doc(linkData.userId).collection("links").doc(docId).set(linkDocument)
 
-    console.log("[v0] Link successfully synced to user's Firebase with ID:", docRef.id)
+    console.log("[v0] Link successfully synced to user's Firebase with ID:", docId)
 
     await deleteApp(userApp)
 
-    return { synced: true, firebaseDocId: docRef.id }
+    return { synced: true, firebaseDocId: docId }
   } catch (error) {
     console.error("[v0] Error syncing link to user Firebase:", error)
     if (error instanceof Error) {
@@ -130,20 +131,20 @@ export async function getLinkFromFirebase(userId: string, shortCode: string) {
   try {
     const { userDb, userApp } = await getUserFirebaseDb(userId)
 
-    const snapshot = await userDb
-      .collection("urls")
-      .where("shortCode", "==", shortCode)
-      .where("isActive", "==", true)
-      .limit(1)
-      .get()
+    const docId = `${userId}_${shortCode}`
+    const doc = await userDb.collection("urls").doc(userId).collection("links").doc(docId).get()
 
-    if (snapshot.empty) {
+    if (!doc.exists) {
       await deleteApp(userApp)
       return null
     }
 
-    const doc = snapshot.docs[0]
     const data = doc.data()
+
+    if (!data || !data.isActive) {
+      await deleteApp(userApp)
+      return null
+    }
 
     await deleteApp(userApp)
 
@@ -181,20 +182,23 @@ export async function recordClickInFirebase(
   try {
     const { userDb, userApp } = await getUserFirebaseDb(userId)
 
-    await userDb.collection("clicks").add({
-      shortCode,
-      userId,
-      ...clickData,
-      clickedAt: new Date(),
-    })
+    await userDb
+      .collection("urls")
+      .doc(userId)
+      .collection("clicks")
+      .add({
+        shortCode,
+        userId,
+        ...clickData,
+        clickedAt: new Date(),
+      })
 
-    // Increment click count on the URL document
-    const urlSnapshot = await userDb.collection("urls").where("shortCode", "==", shortCode).limit(1).get()
+    const docId = `${userId}_${shortCode}`
+    const urlDoc = await userDb.collection("urls").doc(userId).collection("links").doc(docId).get()
 
-    if (!urlSnapshot.empty) {
-      const urlDoc = urlSnapshot.docs[0]
+    if (urlDoc.exists) {
       await urlDoc.ref.update({
-        clicks: (urlDoc.data().clicks || 0) + 1,
+        clicks: (urlDoc.data()?.clicks || 0) + 1,
       })
     }
 
@@ -207,7 +211,6 @@ export async function recordClickInFirebase(
 
 export async function findLinkInAnyFirebase(shortCode: string) {
   try {
-    // Get all users with Firebase credentials
     const credentialsSnapshot = await db.collection("user_firebase_credentials").get()
 
     if (credentialsSnapshot.empty) {
@@ -215,7 +218,6 @@ export async function findLinkInAnyFirebase(shortCode: string) {
       return null
     }
 
-    // Try each user's Firebase database
     for (const credDoc of credentialsSnapshot.docs) {
       const userId = credDoc.id
       console.log("[v0] Checking Firebase for user:", userId)
@@ -228,7 +230,6 @@ export async function findLinkInAnyFirebase(shortCode: string) {
         }
       } catch (error) {
         console.error(`[v0] Error checking Firebase for user ${userId}:`, error)
-        // Continue to next user
       }
     }
 
