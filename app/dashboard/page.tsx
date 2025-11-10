@@ -11,7 +11,6 @@ import {
   Trash2,
   TrendingUp,
   Eye,
-  DollarSign,
   Plus,
   LogOut,
   Menu,
@@ -24,11 +23,13 @@ import {
   BarChart3,
   Key,
   Bell,
+  AlertTriangle,
 } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 
 interface UserLink {
   id: number
@@ -38,7 +39,6 @@ interface UserLink {
   created_at: string
   total_clicks: number
   total_impressions: number
-  estimated_earnings: string
   expiry_date?: string
 }
 
@@ -49,7 +49,7 @@ interface User {
   image?: string
 }
 
-type SortField = "created_at" | "total_clicks" | "total_impressions" | "estimated_earnings"
+type SortField = "created_at" | "total_clicks" | "total_impressions"
 type SortOrder = "asc" | "desc"
 
 export default function Dashboard() {
@@ -178,11 +178,37 @@ export default function Dashboard() {
   const totalStats = {
     clicks: links.reduce((sum, l) => sum + l.total_clicks, 0),
     impressions: links.reduce((sum, l) => sum + l.total_impressions, 0),
-    earnings: links.reduce((sum, l) => sum + Number.parseFloat(l.estimated_earnings || "0"), 0),
   }
 
   const totalPages = Math.ceil(filteredLinks.length / itemsPerPage)
   const paginatedLinks = filteredLinks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  const getExpiryStatus = (expiryDate: string | undefined) => {
+    if (!expiryDate) return null
+
+    const now = new Date()
+    const expiry = new Date(expiryDate)
+    const daysSinceExpiry = Math.floor((now.getTime() - expiry.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysSinceExpiry >= 0 && daysSinceExpiry < 7) {
+      // Link is expired and will be deleted within 7 days
+      return {
+        daysLeft: 7 - daysSinceExpiry,
+        message: `This link expired on ${expiry.toLocaleDateString()} and will be permanently deleted in ${7 - daysSinceExpiry} day(s).`,
+        color: "text-red-400",
+      }
+    } else if (daysSinceExpiry < 0 && daysSinceExpiry > -3) {
+      // Link expires soon (within 3 days)
+      const daysUntilExpiry = Math.abs(daysSinceExpiry)
+      return {
+        daysLeft: daysUntilExpiry,
+        message: `This link will expire in ${daysUntilExpiry} day(s) and will be deleted 7 days after expiry.`,
+        color: "text-yellow-400",
+      }
+    }
+
+    return null
+  }
 
   if (loading) {
     return (
@@ -294,7 +320,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="bg-slate-800/50 border-slate-700 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -315,18 +341,6 @@ export default function Dashboard() {
               </div>
               <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
                 <Eye className="w-6 h-6 text-emerald-400" />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-slate-800/50 border-slate-700 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm mb-1">Est. Earnings</p>
-                <p className="text-white text-3xl font-bold">${totalStats.earnings.toFixed(2)}</p>
-              </div>
-              <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-amber-400" />
               </div>
             </div>
           </Card>
@@ -401,9 +415,7 @@ export default function Dashboard() {
                         className="border-slate-600"
                       />
                     </TableHead>
-                    <TableHead className="text-slate-300">Short Code</TableHead>
-                    <TableHead className="text-slate-300 hidden lg:table-cell">Original URL</TableHead>
-                
+                    <TableHead className="text-slate-300">URL</TableHead>
                     <TableHead
                       className="text-slate-300 cursor-pointer select-none text-right"
                       onClick={() => handleSort("total_clicks")}
@@ -422,7 +434,7 @@ export default function Dashboard() {
                         <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </TableHead>
-                        <TableHead
+                    <TableHead
                       className="text-slate-300 cursor-pointer select-none"
                       onClick={() => handleSort("created_at")}
                     >
@@ -431,93 +443,97 @@ export default function Dashboard() {
                         <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </TableHead>
-                    <TableHead
-                      className="text-slate-300 cursor-pointer select-none text-right hidden md:table-cell"
-                      onClick={() => handleSort("estimated_earnings")}
-                    >
-                      <div className="flex items-center gap-1 justify-end">
-                        Expiry Date
-                        <ArrowUpDown className="w-3 h-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                    <TableHead className="text-slate-300 hidden md:table-cell">Expiry Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedLinks.map((link) => (
-                    <TableRow key={link.id} className="border-slate-700 hover:bg-slate-800/30">
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedLinks.includes(link.id)}
-                          onCheckedChange={() => toggleSelectLink(link.id)}
-                          className="border-slate-600"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <code className="text-indigo-400 font-mono text-sm bg-slate-900 px-2 py-1 rounded">
-                            {link.short_code}
-                          </code>
-                          <button
-                            onClick={() => handleCopyLink(link.short_code, link.id)}
-                            className={`p-1 rounded transition ${
-                              copiedId === link.id
-                                ? "bg-emerald-500/20 text-emerald-400"
-                                : "text-slate-400 hover:text-slate-300"
-                            }`}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="flex items-center gap-2 max-w-md">
-                          <span className="text-slate-300 text-sm truncate">{link.original_url}</span>
-                          <a
-                            href={link.original_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-slate-400 hover:text-slate-300 flex-shrink-0"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </TableCell>
-                   
-                     
-                      <TableCell className="text-slate-300 text-sm text-right font-semibold">
-                        {link.total_clicks.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-slate-300 text-sm text-right hidden md:table-cell">
-                        {link.total_impressions.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-slate-300 text-sm">
-                    {new Date(link.created_at).toLocaleDateString()}
-                     </TableCell>
-                  <TableCell className="text-amber-400 text-sm text-right font-semibold hidden md:table-cell">
-  {link.expiry_date
-    ? new Date(link.expiry_date).toLocaleDateString()
-    : "Never"}
-</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Link href={`/analytics/${link.short_code}`}>
-                            <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white h-8 w-8 p-0">
-                              <BarChart3 className="w-4 h-4" />
+                  {paginatedLinks.map((link) => {
+                    const expiryStatus = getExpiryStatus(link.expiry_date)
+
+                    return (
+                      <TableRow key={link.id} className="border-slate-700 hover:bg-slate-800/30">
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedLinks.includes(link.id)}
+                            onCheckedChange={() => toggleSelectLink(link.id)}
+                            className="border-slate-600"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1.5 max-w-md">
+                            <div className="flex items-center gap-2">
+                              <code className="text-indigo-400 font-mono text-sm bg-slate-900 px-2 py-1 rounded">
+                                {link.short_code}
+                              </code>
+                              <button
+                                onClick={() => handleCopyLink(link.short_code, link.id)}
+                                className={`p-1 rounded transition ${
+                                  copiedId === link.id
+                                    ? "bg-emerald-500/20 text-emerald-400"
+                                    : "text-slate-400 hover:text-slate-300"
+                                }`}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                              <div className="flex items-center justify-end gap-1">
+                            <Link href={`/analytics/${link.short_code}`}>
+                              <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white h-8 w-8 p-0">
+                                <BarChart3 className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteLink(link.id)}
+                              className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
-                          </Link>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteLink(link.id)}
-                            className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                          </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-400 text-xs truncate">{link.original_url}</span>
+                              <a
+                                href={link.original_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-slate-400 hover:text-slate-300 flex-shrink-0"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-sm text-right font-semibold">
+                          {link.total_clicks.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-sm text-right hidden md:table-cell">
+                          {link.total_impressions.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-sm hidden md:table-cell">
+                          {new Date(link.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-sm hidden md:table-cell">
+                          <div className="flex items-center gap-2">
+                            <span>{link.expiry_date ? new Date(link.expiry_date).toLocaleDateString() : "Never"}</span>
+                            {expiryStatus && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <AlertTriangle className={`w-4 h-4 ${expiryStatus.color} cursor-help`} />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-slate-900 border border-slate-700 text-white max-w-xs">
+                                    <p>{expiryStatus.message}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </TableCell>
+                       
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </div>

@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         u.original_url,
         u.title,
         u.created_at,
+        u.expiry_date,
         COALESCE((SELECT COUNT(*) FROM clicks WHERE url_id = u.id), 0) as total_clicks,
         COALESCE((SELECT COUNT(*) FROM impressions WHERE url_id = u.id), 0) as total_impressions
       FROM urls u
@@ -30,7 +31,6 @@ export async function GET(request: Request) {
       ...link,
       total_clicks: Number(link.total_clicks),
       total_impressions: Number(link.total_impressions),
-      estimated_earnings: ((Number(link.total_impressions) / 1000) * 0.5).toFixed(2),
     }))
 
     return Response.json({ links })
