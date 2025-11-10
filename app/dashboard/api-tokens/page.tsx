@@ -20,6 +20,7 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  Database,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -531,23 +532,12 @@ export default function APITokensPage() {
                 </AlertDescription>
               </Alert>
 
-              <Button
-                onClick={handleCreateTokenWithUserFirebase}
-                disabled={creatingCustomToken}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
-              >
-                {creatingCustomToken ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating Token in Your Firebase...
-                  </>
-                ) : (
-                  <>
-                    <Key className="w-4 h-4 mr-2" />
-                    Create My Token
-                  </>
-                )}
-              </Button>
+              <Link href="/dashboard/api-tokens/firebase-details">
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  <Database className="w-4 h-4 mr-2" />
+                  View Details & Create Token
+                </Button>
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
