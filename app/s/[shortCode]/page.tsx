@@ -11,7 +11,7 @@ export default function InterstitialPage() {
   const shortCode = params.shortCode as string
 
   const [originalUrl, setOriginalUrl] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState(3)
+  const [timeLeft, setTimeLeft] = useState(1)
   const [canSkip, setCanSkip] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -103,6 +103,15 @@ export default function InterstitialPage() {
       </div>
     )
   }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <Spinner className="w-12 h-12 text-indigo-500 mx-auto" />
+        <p className="text-slate-300 text-lg font-medium">Loading your page...</p>
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
