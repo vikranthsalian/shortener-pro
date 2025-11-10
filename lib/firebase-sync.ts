@@ -2,43 +2,43 @@ import { db } from "@/lib/firebase"
 import { initializeApp, cert, getApps, deleteApp } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
 
-export async function syncLinkToUserFirebase(linkData: {
-  id: number
-  userId: string
-  shortCode: string
-  originalUrl: string
-  title?: string | null
-  description?: string | null
-  createdAt: string
-  expiryDate?: string | null
-}) {
+export async function hasFirebaseCredentials(userId: string): Promise<boolean> {
   try {
-    if (!linkData.userId || linkData.userId === "") {
-      console.log("[v0] Invalid userId, skipping Firebase sync")
-      return { synced: false, reason: "invalid_user_id" }
+    if (!userId || userId === "") {
+      return false
     }
 
-    console.log("[v0] Checking if user has Firebase credentials for sync:", linkData.userId)
-
-    const userDocRef = db.collection("user_firebase_credentials").doc(linkData.userId.toString())
+    const userDocRef = db.collection("user_firebase_credentials").doc(userId.toString())
     const doc = await userDocRef.get()
 
     if (!doc.exists) {
-      console.log("[v0] User has no Firebase credentials configured, skipping sync")
-      return { synced: false, reason: "no_credentials" }
+      return false
+    }
+
+    const credentials = doc.data()
+    return !!(credentials?.projectId && credentials?.privateKey && credentials?.clientEmail)
+  } catch (error) {
+    console.error("[v0] Error checking Firebase credentials:", error)
+    return false
+  }
+}
+
+export async function getUserFirebaseDb(userId: string) {
+  try {
+    const userDocRef = db.collection("user_firebase_credentials").doc(userId.toString())
+    const doc = await userDocRef.get()
+
+    if (!doc.exists) {
+      throw new Error("No Firebase credentials found")
     }
 
     const credentials = doc.data()
     if (!credentials?.projectId || !credentials?.privateKey || !credentials?.clientEmail) {
-      console.log("[v0] Incomplete Firebase credentials, skipping sync")
-      return { synced: false, reason: "incomplete_credentials" }
+      throw new Error("Incomplete Firebase credentials")
     }
 
-    console.log("[v0] Syncing link to user's Firebase:", credentials.projectId)
+    const userAppName = `user-firebase-${userId}-${Date.now()}`
 
-    const userAppName = `user-firebase-${linkData.userId}-${Date.now()}`
-
-    // Check if app already exists and delete it to avoid conflicts
     const existingApps = getApps()
     const existingApp = existingApps.find((app) => app.name === userAppName)
     if (existingApp) {
@@ -57,6 +57,39 @@ export async function syncLinkToUserFirebase(linkData: {
     )
 
     const userDb = getFirestore(userApp)
+
+    return { userDb, userApp, projectId: credentials.projectId }
+  } catch (error) {
+    console.error("[v0] Error getting user Firebase DB:", error)
+    throw error
+  }
+}
+
+export async function syncLinkToUserFirebase(linkData: {
+  id: number
+  userId: string
+  shortCode: string
+  originalUrl: string
+  title?: string | null
+  description?: string | null
+  createdAt: string
+  expiryDate?: string | null
+}) {
+  try {
+    if (!linkData.userId || linkData.userId === "") {
+      console.log("[v0] Invalid userId, skipping Firebase sync")
+      return { synced: false, reason: "invalid_user_id" }
+    }
+
+    console.log("[v0] Checking if user has Firebase credentials for sync:", linkData.userId)
+
+    const hasCredentials = await hasFirebaseCredentials(linkData.userId)
+    if (!hasCredentials) {
+      console.log("[v0] User has no Firebase credentials configured, skipping sync")
+      return { synced: false, reason: "no_credentials" }
+    }
+
+    const { userDb, userApp } = await getUserFirebaseDb(linkData.userId)
 
     const linkDocument = {
       id: linkData.id,
@@ -77,7 +110,6 @@ export async function syncLinkToUserFirebase(linkData: {
 
     console.log("[v0] Link successfully synced to user's Firebase with ID:", docRef.id)
 
-    // Clean up the temporary app instance
     await deleteApp(userApp)
 
     return { synced: true, firebaseDocId: docRef.id }
@@ -91,5 +123,84 @@ export async function syncLinkToUserFirebase(linkData: {
       })
     }
     return { synced: false, reason: "exception", error: String(error) }
+  }
+}
+
+export async function getLinkFromFirebase(userId: string, shortCode: string) {
+  try {
+    const { userDb, userApp } = await getUserFirebaseDb(userId)
+
+    const snapshot = await userDb
+      .collection("urls")
+      .where("shortCode", "==", shortCode)
+      .where("isActive", "==", true)
+      .limit(1)
+      .get()
+
+    if (snapshot.empty) {
+      await deleteApp(userApp)
+      return null
+    }
+
+    const doc = snapshot.docs[0]
+    const data = doc.data()
+
+    await deleteApp(userApp)
+
+    return {
+      id: data.id,
+      originalUrl: data.originalUrl,
+      shortCode: data.shortCode,
+      expiryDate: data.expiryDate?.toDate() || null,
+      firebaseDocId: doc.id,
+      userId: data.userId,
+    }
+  } catch (error) {
+    console.error("[v0] Error getting link from Firebase:", error)
+    return null
+  }
+}
+
+export async function recordClickInFirebase(
+  userId: string,
+  shortCode: string,
+  clickData: {
+    userAgent: string
+    referrer: string
+    ipAddress: string
+    country: string
+    city: string
+    deviceType: string
+    deviceBrand: string
+    osName: string
+    osVersion: string
+    browserName: string
+    browserVersion: string
+  },
+) {
+  try {
+    const { userDb, userApp } = await getUserFirebaseDb(userId)
+
+    await userDb.collection("clicks").add({
+      shortCode,
+      userId,
+      ...clickData,
+      clickedAt: new Date(),
+    })
+
+    // Increment click count on the URL document
+    const urlSnapshot = await userDb.collection("urls").where("shortCode", "==", shortCode).limit(1).get()
+
+    if (!urlSnapshot.empty) {
+      const urlDoc = urlSnapshot.docs[0]
+      await urlDoc.ref.update({
+        clicks: (urlDoc.data().clicks || 0) + 1,
+      })
+    }
+
+    await deleteApp(userApp)
+    console.log("[v0] Click recorded in user's Firebase")
+  } catch (error) {
+    console.error("[v0] Error recording click in Firebase:", error)
   }
 }

@@ -3,7 +3,7 @@ import { sql } from "@/lib/db"
 import { generateShortCode, isValidUrl } from "@/lib/short-code-generator"
 import { runMigration } from "@/lib/migrate"
 import { rateLimit } from "@/lib/rate-limit"
-import { syncLinkToUserFirebase } from "@/lib/firebase-sync"
+import { syncLinkToUserFirebase, hasFirebaseCredentials } from "@/lib/firebase-sync"
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate input
     if (!originalUrl || !isValidUrl(originalUrl)) {
       return NextResponse.json({ error: "Invalid URL provided" }, { status: 400 })
     }
@@ -43,43 +42,61 @@ export async function POST(request: NextRequest) {
     } else if (expiry === "1month") {
       expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     }
-    // "never" means expiryDate stays null
 
-    const result = await sql`
-      INSERT INTO urls (short_code, original_url, title, description, user_id, expiry_date) 
-      VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null}, ${userId || null}, ${expiryDate ? expiryDate.toISOString() : null})
-      RETURNING id, short_code, original_url, title, description, user_id, created_at, expiry_date
-    `
+    const hasFirebase = userId ? await hasFirebaseCredentials(userId) : false
 
-    const url = result[0]
+    let url: any
 
-    if (userId) {
-      console.log("[v0] Attempting to sync new link to user's Firebase")
-      const syncResult = await syncLinkToUserFirebase({
-        id: url.id,
+    if (hasFirebase) {
+      console.log("[v0] User has Firebase configured, saving directly to Firebase")
+
+      const linkData = {
+        id: Date.now(), // Use timestamp as temporary ID
         userId: userId,
-        shortCode: url.short_code,
-        originalUrl: url.original_url,
-        title: url.title,
-        description: url.description,
-        createdAt: url.created_at,
-        expiryDate: url.expiry_date,
-      })
+        shortCode: shortCode,
+        originalUrl: originalUrl,
+        title: title || null,
+        description: description || null,
+        createdAt: new Date().toISOString(),
+        expiryDate: expiryDate ? expiryDate.toISOString() : null,
+      }
+
+      const syncResult = await syncLinkToUserFirebase(linkData)
 
       if (syncResult.synced) {
-        console.log("[v0] Link successfully synced to user's Firebase")
+        console.log("[v0] Link successfully saved to user's Firebase")
+        url = linkData
       } else {
-        console.log("[v0] Link not synced to Firebase:", syncResult.reason)
+        console.log("[v0] Failed to save to Firebase, falling back to Neon")
+        // Fallback to Neon if Firebase fails
+        const result = await sql`
+          INSERT INTO urls (short_code, original_url, title, description, user_id, expiry_date) 
+          VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null}, ${userId || null}, ${
+            expiryDate ? expiryDate.toISOString() : null
+          })
+          RETURNING id, short_code, original_url, title, description, user_id, created_at, expiry_date
+        `
+        url = result[0]
       }
+    } else {
+      console.log("[v0] User has no Firebase configured, saving to Neon")
+      const result = await sql`
+        INSERT INTO urls (short_code, original_url, title, description, user_id, expiry_date) 
+        VALUES (${shortCode}, ${originalUrl}, ${title || null}, ${description || null}, ${userId || null}, ${
+          expiryDate ? expiryDate.toISOString() : null
+        })
+        RETURNING id, short_code, original_url, title, description, user_id, created_at, expiry_date
+      `
+      url = result[0]
     }
 
     return NextResponse.json({
       id: url.id,
-      shortCode: url.short_code,
-      originalUrl: url.original_url,
-      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "https://shortner-pro.vercel.app"}/s/${url.short_code}`,
-      createdAt: url.created_at,
-      expiryDate: url.expiry_date,
+      shortCode: url.short_code || url.shortCode,
+      originalUrl: url.original_url || url.originalUrl,
+      shortUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "https://shortner-pro.vercel.app"}/s/${url.short_code || url.shortCode}`,
+      createdAt: url.created_at || url.createdAt,
+      expiryDate: url.expiry_date || url.expiryDate,
     })
   } catch (error) {
     console.error("Error creating short URL:", error)
