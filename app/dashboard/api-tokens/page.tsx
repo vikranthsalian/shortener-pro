@@ -5,7 +5,19 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Loader2, Copy, Trash2, Plus, Key, Eye, EyeOff, AlertCircle } from "lucide-react"
+import {
+  Loader2,
+  Copy,
+  Trash2,
+  Plus,
+  Key,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -17,6 +29,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface APIToken {
   id: number
@@ -46,6 +59,10 @@ export default function APITokensPage() {
   const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null)
   const [visibleTokens, setVisibleTokens] = useState<Set<number>>(new Set())
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredTokens, setFilteredTokens] = useState<APIToken[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -174,6 +191,24 @@ export default function APITokensPage() {
     const prefix = token.substring(0, 10)
     return `${prefix}${"•".repeat(50)}`
   }
+
+  useEffect(() => {
+    let filtered = [...tokens]
+
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (token) =>
+          token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          token.token.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    }
+
+    setFilteredTokens(filtered)
+    setCurrentPage(1)
+  }, [searchQuery, tokens])
+
+  const totalPages = Math.ceil(filteredTokens.length / itemsPerPage)
+  const paginatedTokens = filteredTokens.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   if (loading) {
     return (
@@ -320,63 +355,124 @@ export default function APITokensPage() {
             <p className="text-slate-400 mb-6">Create your first API token to start using the Shortner Pro API</p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {tokens.map((token) => (
-              <Card key={token.id} className="bg-slate-800/50 border-slate-700 p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-white">{token.name}</h3>
-                      {!token.is_active && (
-                        <span className="px-2 py-1 bg-red-900/30 text-red-400 text-xs rounded-md">Revoked</span>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <code className="text-sm text-slate-400 font-mono bg-slate-900 px-3 py-2 rounded flex-1 min-w-0 break-all">
-                          {visibleTokens.has(token.id) ? token.token : maskToken(token.token)}
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => toggleTokenVisibility(token.id)}
-                          className="text-slate-400 hover:text-white flex-shrink-0"
-                        >
-                          {visibleTokens.has(token.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleCopyToken(token.token, token.id)}
-                          className={`flex-shrink-0 ${
-                            copiedTokenId === token.id ? "text-emerald-400" : "text-slate-400 hover:text-white"
-                          }`}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-xs text-slate-400">
-                        <span>Usage: {token.usage_count.toLocaleString()} requests</span>
-                        <span>Rate Limit: {token.rate_limit}/hour</span>
-                        <span>Created: {new Date(token.created_at).toLocaleDateString()}</span>
-                        {token.last_used_at && <span>Last Used: {new Date(token.last_used_at).toLocaleString()}</span>}
-                      </div>
-                    </div>
+          <Card className="bg-slate-800/50 border-slate-700">
+            <div className="p-4 border-b border-slate-700">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      placeholder="Search by token name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                    />
                   </div>
-                  {token.is_active && (
-                    <Button
-                      onClick={() => handleRevokeToken(token.id)}
-                      variant="destructive"
-                      className="bg-red-600 hover:bg-red-700 lg:ml-4"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Revoke
-                    </Button>
-                  )}
                 </div>
-              </Card>
-            ))}
-          </div>
+                <Select value={itemsPerPage.toString()} onValueChange={(v) => setItemsPerPage(Number(v))}>
+                  <SelectTrigger className="w-[100px] bg-slate-900 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 rows</SelectItem>
+                    <SelectItem value="10">10 rows</SelectItem>
+                    <SelectItem value="25">25 rows</SelectItem>
+                    <SelectItem value="50">50 rows</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-4">
+              {paginatedTokens.map((token) => (
+                <Card key={token.id} className="bg-slate-900/50 border-slate-600 p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-white">{token.name}</h3>
+                        {!token.is_active && (
+                          <span className="px-2 py-1 bg-red-900/30 text-red-400 text-xs rounded-md">Revoked</span>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <code className="text-sm text-slate-400 font-mono bg-slate-900 px-3 py-2 rounded flex-1 min-w-0 break-all">
+                            {visibleTokens.has(token.id) ? token.token : maskToken(token.token)}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => toggleTokenVisibility(token.id)}
+                            className="text-slate-400 hover:text-white flex-shrink-0"
+                          >
+                            {visibleTokens.has(token.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCopyToken(token.token, token.id)}
+                            className={`flex-shrink-0 ${
+                              copiedTokenId === token.id ? "text-emerald-400" : "text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-xs text-slate-400">
+                          <span>Usage: {token.usage_count.toLocaleString()} requests</span>
+                          <span>Rate Limit: {token.rate_limit}/hour</span>
+                          <span>Created: {new Date(token.created_at).toLocaleDateString()}</span>
+                          {token.last_used_at && (
+                            <span>Last Used: {new Date(token.last_used_at).toLocaleString()}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {token.is_active && (
+                      <Button
+                        onClick={() => handleRevokeToken(token.id)}
+                        variant="destructive"
+                        className="bg-red-600 hover:bg-red-700 lg:ml-4"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Revoke
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            <div className="p-4 border-t border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-slate-400">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                {Math.min(currentPage * itemsPerPage, filteredTokens.length)} of {filteredTokens.length} tokens
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="bg-slate-900 border-slate-600 text-slate-300 disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm text-slate-300">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="bg-slate-900 border-slate-600 text-slate-300 disabled:opacity-50"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
     </div>
