@@ -31,15 +31,13 @@ export async function createAPIToken(userId: number, firebaseAppID: string, toke
     userId,
     firebaseAppID,
     token,
-    userEmail,
     name: tokenName,
     createdAt: new Date().toISOString(),
     isActive: true,
     usageCount: 0,
     rateLimit: 60, // 60 requests per minute by default
   }
-  console.log("[v0] Token userEmail:", userEmail)
-console.log("[v0] Token data:", apiToken)
+
   // Save to Firestore
   await db.collection(COLLECTIONS.API_TOKENS).doc(token).set(apiToken)
 

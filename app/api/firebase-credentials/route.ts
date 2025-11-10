@@ -18,6 +18,23 @@ export async function POST(request: Request) {
 
     console.log("[v0] Saving Firebase credentials for user:", userId)
 
+    const existingCredentials = await db
+      .collection("user_firebase_credentials")
+      .where("projectId", "==", projectId.trim())
+      .limit(1)
+      .get()
+
+    if (!existingCredentials.empty) {
+      console.log("[v0] Duplicate Firebase project ID detected during save:", projectId)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "This Firebase project has already been registered",
+        },
+        { status: 409 },
+      )
+    }
+
     // Save encrypted credentials to user's Firebase document
     const userDocRef = db.collection("user_firebase_credentials").doc(userId.toString())
 

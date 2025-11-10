@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { initializeApp, cert, deleteApp } from "firebase-admin/app"
 import { getFirestore } from "firebase-admin/firestore"
+import { db } from "@/lib/firebase"
 
 export async function POST(request: Request) {
   try {
@@ -11,6 +12,24 @@ export async function POST(request: Request) {
     }
 
     console.log("[v0] Verifying Firebase connection for project:", projectId)
+
+    const existingCredentials = await db
+      .collection("user_firebase_credentials")
+      .where("projectId", "==", projectId.trim())
+      .limit(1)
+      .get()
+
+    if (!existingCredentials.empty) {
+      console.log("[v0] Duplicate Firebase project ID found:", projectId)
+      return NextResponse.json(
+        {
+          success: false,
+          error: "This Firebase project has already been registered",
+          details: "Each Firebase project can only be connected once",
+        },
+        { status: 409 },
+      )
+    }
 
     // Create a temporary app for verification
     const appName = `verify-${Date.now()}`

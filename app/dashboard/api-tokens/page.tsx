@@ -415,7 +415,7 @@ export default function APITokensPage() {
             <h2 className="text-3xl font-bold text-white mb-2">API Tokens</h2>
             <p className="text-slate-400">Manage your API keys for programmatic access</p>
           </div>
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        {/*   <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
               <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
@@ -458,18 +458,45 @@ export default function APITokensPage() {
                 </Button>
               </div>
             </DialogContent>
-          </Dialog>
+          </Dialog>*/}
         </div>
 
         {/* New Token Alert */}
-        {newlyCreatedToken && (
+        {/*  {newlyCreatedToken && (
           <Alert className="mb-6 bg-emerald-900/20 border-emerald-700">
             <AlertCircle className="h-4 w-4 text-emerald-500" />
             <AlertDescription className="text-emerald-300">
               Token created successfully! Make sure to copy it now - you won't be able to see it again.
             </AlertDescription>
           </Alert>
-        )}
+        )}*/}
+
+        {/* API Documentation Link */}
+        <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Key className="w-6 h-6 text-indigo-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-white font-semibold mb-2">Using Your API Tokens</h3>
+              <p className="text-slate-400 text-sm mb-4">
+                Include your API token in the{" "}
+                <code className="bg-slate-900 px-2 py-1 rounded text-indigo-400">Authorization</code> header of your
+                requests as a Bearer token.
+              </p>
+              <div className="bg-slate-900 p-4 rounded-lg mb-4">
+                <code className="text-sm text-slate-300">
+                  <span className="text-indigo-400">Authorization:</span> Bearer sp_your_token_here
+                </code>
+              </div>
+              <Link href="/api-docs">
+                <Button variant="outline" className="border-slate-600 text-slate-300 hover:text-white bg-transparent">
+                  View API Documentation
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
 
         {/* Firebase Connection Verification Card */}
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
@@ -639,35 +666,8 @@ export default function APITokensPage() {
           )}
         </Card>
 
-        {/* API Documentation Link */}
-        <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Key className="w-6 h-6 text-indigo-400" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-white font-semibold mb-2">Using Your API Tokens</h3>
-              <p className="text-slate-400 text-sm mb-4">
-                Include your API token in the{" "}
-                <code className="bg-slate-900 px-2 py-1 rounded text-indigo-400">Authorization</code> header of your
-                requests as a Bearer token.
-              </p>
-              <div className="bg-slate-900 p-4 rounded-lg mb-4">
-                <code className="text-sm text-slate-300">
-                  <span className="text-indigo-400">Authorization:</span> Bearer sp_your_token_here
-                </code>
-              </div>
-              <Link href="/api-docs">
-                <Button variant="outline" className="border-slate-600 text-slate-300 hover:text-white bg-transparent">
-                  View API Documentation
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Card>
-
         {/* Tokens List */}
-        {tokens.length === 0 ? (
+       {/* {tokens.length === 0 ? (
           <Card className="bg-slate-800/50 border-slate-700 p-12 text-center">
             <div className="w-16 h-16 bg-slate-700 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Key className="w-8 h-8 text-slate-500" />
@@ -755,7 +755,7 @@ export default function APITokensPage() {
               </Card>
             ))}
           </div>
-        )}
+        )}*/}
       </div>
     </div>
   )
