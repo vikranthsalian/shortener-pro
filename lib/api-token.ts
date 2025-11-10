@@ -24,17 +24,31 @@ export function generateAPIToken(): string {
 }
 
 export async function createAPIToken(userId: number, userEmail: string, tokenName: string): Promise<APIToken> {
-  const token = generateAPIToken()
+  try {
+    console.log("[v0] Generating new token...")
+    const token = generateAPIToken()
+    console.log("[v0] Token generated:", token.substring(0, 10) + "...")
 
-  const result = await sql`
-    INSERT INTO api_tokens (token, user_id, user_email, name, created_at, is_active, usage_count, rate_limit)
-    VALUES (${token}, ${userId}, ${userEmail}, ${tokenName}, NOW(), true, 0, 60)
-    RETURNING id, token, user_id as "userId", user_email as "userEmail", name, 
-              created_at as "createdAt", last_used_at as "lastUsedAt", revoked_at as "revokedAt",
-              is_active as "isActive", usage_count as "usageCount", rate_limit as "rateLimit"
-  `
+    console.log("[v0] Inserting token into database...")
+    const result = await sql`
+      INSERT INTO api_tokens (token, user_id, user_email, name, created_at, is_active, usage_count, rate_limit)
+      VALUES (${token}, ${userId}, ${userEmail}, ${tokenName}, NOW(), true, 0, 60)
+      RETURNING id, token, user_id as "userId", user_email as "userEmail", name, 
+                created_at as "createdAt", last_used_at as "lastUsedAt", revoked_at as "revokedAt",
+                is_active as "isActive", usage_count as "usageCount", rate_limit as "rateLimit"
+    `
 
-  return result[0] as APIToken
+    console.log("[v0] Token inserted, result:", result)
+
+    if (!result || result.length === 0) {
+      throw new Error("Failed to insert token into database")
+    }
+
+    return result[0] as APIToken
+  } catch (error) {
+    console.error("[v0] Error in createAPIToken:", error)
+    throw error
+  }
 }
 
 export async function validateAPIToken(token: string): Promise<APIToken | null> {
