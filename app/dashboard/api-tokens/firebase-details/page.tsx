@@ -30,6 +30,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react"
 
 interface APIToken {
   id: string
@@ -51,6 +55,9 @@ interface User {
   image?: string
 }
 
+type SortField = "name" | "createdAt" | "lastUsedAt" | "usageCount"
+type SortOrder = "asc" | "desc"
+
 export default function FirebaseDetailsPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
@@ -69,6 +76,14 @@ export default function FirebaseDetailsPage() {
   const [visibleTokens, setVisibleTokens] = useState<{ [key: string]: boolean }>({})
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
 
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sortField, setSortField] = useState<SortField>("createdAt")
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [selectedTokens, setSelectedTokens] = useState<string[]>([])
+  const [filteredTokens, setFilteredTokens] = useState<APIToken[]>([])
+
   useEffect(() => {
     const userData = localStorage.getItem("user")
     if (!userData) {
@@ -80,6 +95,39 @@ export default function FirebaseDetailsPage() {
     setUser(parsedUser)
     loadFirebaseDetails(parsedUser.id)
   }, [router])
+
+  useEffect(() => {
+    let filtered = [...firebaseTokens]
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (token) =>
+          token.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          token.token.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortField]
+      let bValue: any = b[sortField]
+
+      if (sortField === "createdAt" || sortField === "lastUsedAt") {
+        aValue = new Date(aValue || 0).getTime()
+        bValue = new Date(bValue || 0).getTime()
+      }
+
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+
+    setFilteredTokens(filtered)
+    setCurrentPage(1)
+  }, [searchQuery, sortField, sortOrder, firebaseTokens])
 
   const loadFirebaseDetails = async (userId: number) => {
     try {
@@ -188,6 +236,48 @@ export default function FirebaseDetailsPage() {
       alert("Failed to revoke token")
     }
   }
+
+  const handleBulkRevoke = async () => {
+    if (!confirm(`Are you sure you want to revoke ${selectedTokens.length} tokens? This action cannot be undone.`))
+      return
+
+    try {
+      await Promise.all(selectedTokens.map((id) => fetch(`/api/tokens/${id}`, { method: "DELETE" })))
+      setFirebaseTokens(firebaseTokens.filter((t) => !selectedTokens.includes(t.id)))
+      setSelectedTokens([])
+    } catch (error) {
+      console.error("[v0] Error revoking tokens:", error)
+      alert("Failed to revoke some tokens")
+    }
+  }
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortOrder("desc")
+    }
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedTokens.length === paginatedTokens.length) {
+      setSelectedTokens([])
+    } else {
+      setSelectedTokens(paginatedTokens.map((t) => t.id))
+    }
+  }
+
+  const toggleSelectToken = (id: string) => {
+    if (selectedTokens.includes(id)) {
+      setSelectedTokens(selectedTokens.filter((tokenId) => tokenId !== id))
+    } else {
+      setSelectedTokens([...selectedTokens, id])
+    }
+  }
+
+  const totalPages = Math.ceil(filteredTokens.length / itemsPerPage)
+  const paginatedTokens = filteredTokens.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   if (loading) {
     return (
@@ -401,83 +491,195 @@ export default function FirebaseDetailsPage() {
             </Button>
           </Card>
         ) : (
-          <div className="space-y-4">
-            <h3 className="text-white font-semibold text-lg mb-4">Tokens in Your Firebase</h3>
-            {firebaseTokens.map((token) => (
-              <Card key={token.id} className="bg-slate-800/50 border-slate-700 p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Key className="w-5 h-5 text-emerald-400" />
-                      <h3 className="text-white font-semibold text-lg">{token.name}</h3>
-                      {token.isActive ? (
-                        <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">Revoked</span>
-                      )}
-                    </div>
-                    <div className="bg-slate-900 p-3 rounded-lg mb-3 flex items-center gap-2">
-                      <code className="text-sm text-slate-300 flex-1 break-all">{maskToken(token.token)}</code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleTokenVisibility(token.id)}
-                        className="text-slate-400 hover:text-white flex-shrink-0"
-                      >
-                        {visibleTokens[token.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToken(token.token)}
-                        className={`flex-shrink-0 ${
-                          copiedToken === token.token
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                      <div>
-                        <p className="text-slate-500">Created</p>
-                        <p className="text-slate-300">{new Date(token.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Last Used</p>
-                        <p className="text-slate-300">
-                          {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString() : "Never"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Usage Count</p>
-                        <p className="text-slate-300">{token.usageCount.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Rate Limit</p>
-                        <p className="text-slate-300">{token.rateLimit} req/min</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex lg:flex-col gap-2">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRevokeToken(token.id)}
-                      disabled={!token.isActive}
-                      className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Revoke
-                    </Button>
+          <Card className="bg-slate-800/50 border-slate-700">
+            {/* Table Controls */}
+            <div className="p-4 border-b border-slate-700">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex-1 max-w-md">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      placeholder="Search by name or token..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-slate-900 border-slate-600 text-white placeholder:text-slate-500"
+                    />
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
+                <div className="flex gap-2">
+                  {selectedTokens.length > 0 && (
+                    <Button
+                      onClick={handleBulkRevoke}
+                      variant="destructive"
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Revoke ({selectedTokens.length})
+                    </Button>
+                  )}
+                  <Select value={itemsPerPage.toString()} onValueChange={(v) => setItemsPerPage(Number(v))}>
+                    <SelectTrigger className="w-[100px] bg-slate-900 border-slate-600 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 rows</SelectItem>
+                      <SelectItem value="10">10 rows</SelectItem>
+                      <SelectItem value="25">25 rows</SelectItem>
+                      <SelectItem value="50">50 rows</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-slate-700 hover:bg-slate-800/50">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedTokens.length === paginatedTokens.length && paginatedTokens.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                        className="border-slate-600"
+                      />
+                    </TableHead>
+                    <TableHead className="text-slate-300 cursor-pointer select-none" onClick={() => handleSort("name")}>
+                      <div className="flex items-center gap-1">
+                        Token Name
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-slate-300 hidden lg:table-cell">Token Value</TableHead>
+                    <TableHead className="text-slate-300">Status</TableHead>
+                    <TableHead
+                      className="text-slate-300 cursor-pointer select-none hidden md:table-cell"
+                      onClick={() => handleSort("createdAt")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Created
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="text-slate-300 cursor-pointer select-none text-right hidden md:table-cell"
+                      onClick={() => handleSort("usageCount")}
+                    >
+                      <div className="flex items-center gap-1 justify-end">
+                        Usage
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-slate-300 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedTokens.map((token) => (
+                    <TableRow key={token.id} className="border-slate-700 hover:bg-slate-800/30">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedTokens.includes(token.id)}
+                          onCheckedChange={() => toggleSelectToken(token.id)}
+                          className="border-slate-600"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Key className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                          <span className="text-white font-medium">{token.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="flex items-center gap-2 max-w-md">
+                          <code className="text-sm text-slate-300 flex-1 break-all font-mono bg-slate-900 px-2 py-1 rounded">
+                            {maskToken(token.token)}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleTokenVisibility(token.id)}
+                            className="text-slate-400 hover:text-white h-8 w-8 p-0 flex-shrink-0"
+                          >
+                            {visibleTokens[token.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToken(token.token)}
+                            className={`h-8 w-8 p-0 flex-shrink-0 ${
+                              copiedToken === token.token
+                                ? "bg-emerald-500/20 text-emerald-400"
+                                : "text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {token.isActive ? (
+                          <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">Revoked</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-300 text-sm hidden md:table-cell">
+                        {new Date(token.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-slate-300 text-sm text-right font-semibold hidden md:table-cell">
+                        {token.usageCount.toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRevokeToken(token.id)}
+                          disabled={!token.isActive}
+                          className="text-red-400 hover:text-red-300 h-8 w-8 p-0 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination */}
+            <div className="p-4 border-t border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-slate-400">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                {Math.min(currentPage * itemsPerPage, filteredTokens.length)} of {filteredTokens.length} tokens
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="bg-slate-900 border-slate-600 text-slate-300 disabled:opacity-50"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm text-slate-300">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="bg-slate-900 border-slate-600 text-slate-300 disabled:opacity-50"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
     </div>
