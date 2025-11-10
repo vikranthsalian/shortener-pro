@@ -24,12 +24,12 @@ export function generateAPIToken(): string {
   return `${prefix}${token}`
 }
 
-export async function createAPIToken(userId: number, userEmail: string, tokenName: string): Promise<APIToken> {
+export async function createAPIToken(userId: number, firebaseAppID: string, tokenName: string): Promise<APIToken> {
   const token = generateAPIToken()
   const apiToken: APIToken = {
     id: token,
     userId,
-    userEmail,
+    firebaseAppID,
     token,
     name: tokenName,
     createdAt: new Date().toISOString(),
@@ -37,7 +37,7 @@ export async function createAPIToken(userId: number, userEmail: string, tokenNam
     usageCount: 0,
     rateLimit: 60, // 60 requests per minute by default
   }
-
+console.log("[v0] Token data:", apiToken)
   // Save to Firestore
   await db.collection(COLLECTIONS.API_TOKENS).doc(token).set(apiToken)
 
