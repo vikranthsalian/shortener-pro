@@ -8,7 +8,10 @@ export async function POST(request: NextRequest) {
   try {
     await runMigration()
 
-    const { originalUrl, title, description, userId, expiry } = await request.json()
+    const { originalUrl, title, description, userId: bodyUserId, expiry } = await request.json()
+
+    const headerUserId = request.headers.get("x-user-id")
+    const userId = headerUserId ? Number.parseInt(headerUserId) : bodyUserId
 
     if (userId) {
       const rateLimitResult = await rateLimit(`shorten:${userId}`, 10, 60000)

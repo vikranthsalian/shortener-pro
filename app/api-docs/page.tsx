@@ -562,6 +562,82 @@ export default function ApiDocsPage() {
             </CardContent>
           </Card>
 
+          {/* Authentication Section */}
+          <Card className="mb-8 border-yellow-500/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">🔐 Authentication</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2 text-white">Using API Tokens</h4>
+                <p className="text-sm text-white/70 mb-3">
+                  To use the API, you need to create an API token from your dashboard. Include it in your requests using
+                  the Authorization header:
+                </p>
+                <code className="block bg-slate-950 text-green-400 p-4 rounded-lg text-sm">
+                  Authorization: Bearer sp_your_api_token_here
+                </code>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2 text-white">Getting Your API Token</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-white/70">
+                  <li>Navigate to your Dashboard</li>
+                  <li>Click on "API Tokens" button</li>
+                  <li>Create a new token with a descriptive name</li>
+                  <li>Copy the generated token (it starts with "sp_")</li>
+                  <li>Use it in your API requests</li>
+                </ol>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2 text-white">Example Request with cURL</h4>
+                <div className="bg-slate-950 rounded-lg p-4 overflow-x-auto">
+                  <pre className="text-xs text-green-400">
+                    <code>{`curl -X POST https://shortner-pro.vercel.app/api/shorten \\
+  -H "Authorization: Bearer sp_your_api_token_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "originalUrl": "https://example.com",
+    "title": "My Link",
+    "expiry": "never"
+  }'`}</code>
+                  </pre>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-2 text-white">Example Request with JavaScript</h4>
+                <div className="bg-slate-950 rounded-lg p-4 overflow-x-auto">
+                  <pre className="text-xs text-green-400">
+                    <code>{`const response = await fetch('https://shortner-pro.vercel.app/api/shorten', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer sp_your_api_token_here',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    originalUrl: 'https://example.com',
+    title: 'My Link',
+    expiry: 'never'
+  })
+});
+
+const data = await response.json();
+console.log(data.shortUrl);`}</code>
+                  </pre>
+                </div>
+              </div>
+
+              <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
+                <p className="text-sm text-yellow-200">
+                  <strong>⚠️ Important:</strong> Keep your API tokens secure. Never share them publicly or commit them to
+                  version control. Each token has rate limits based on your account configuration.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Category Filter */}
           <div className="mb-6">
             <h3 className="text-white font-semibold mb-3">Filter by Category</h3>

@@ -127,7 +127,7 @@ export default function APITokensPage() {
           rateLimit: Number.parseInt(newTokenRateLimit),
         }),
       })
-
+      console.error("[v0] Error creating token:", response)
       if (!response.ok) throw new Error("Failed to create token")
 
       const data = await response.json()

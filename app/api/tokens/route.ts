@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createAPIToken, getUserAPITokens } from "@/lib/api-token"
+import { createAPIToken } from "@/lib/api-token-server"
+import { getUserAPITokens } from "@/lib/api-token"
 
 export async function GET(req: NextRequest) {
   try {
