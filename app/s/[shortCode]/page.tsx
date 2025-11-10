@@ -127,7 +127,7 @@ export default function InterstitialPage() {
               This link is monetized. Please wait while we load the destination page.
             </p>
 
-            <div className="bg-slate-100 rounded-lg p-6 mb-6 min-h-[250px] flex items-center justify-center border-2 border-dashed border-slate-300">
+           {/* <div className="bg-slate-100 rounded-lg p-6 mb-6 min-h-[250px] flex items-center justify-center border-2 border-dashed border-slate-300">
               {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ? (
                 <ins
                   className="adsbygoogle"
@@ -143,7 +143,7 @@ export default function InterstitialPage() {
                   <p className="text-slate-400 text-xs">Add NEXT_PUBLIC_ADSENSE_CLIENT_ID to environment variables</p>
                 </div>
               )}
-            </div>
+            </div>*/}
 
             {/* Timer and Skip Button */}
             <div className="space-y-4">
