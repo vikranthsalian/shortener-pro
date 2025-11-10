@@ -106,7 +106,7 @@ export default function FirebaseDetailsPage() {
   }
 
   const handleCreateToken = async () => {
-    if (!newTokenName.trim() || !user) return
+    if (!newTokenName.trim() || !user || !savedFirebaseConfig) return
 
     setCreating(true)
     try {
@@ -115,7 +115,7 @@ export default function FirebaseDetailsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          userEmail: user.email,
+          firebaseAppId: savedFirebaseConfig.projectId,
           tokenName: newTokenName,
         }),
       })
