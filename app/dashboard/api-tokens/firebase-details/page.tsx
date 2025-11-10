@@ -110,7 +110,7 @@ export default function FirebaseDetailsPage() {
 
     setCreating(true)
     try {
-      const response = await fetch("/api/tokens/create-with-firebase", {
+      const response = await fetch("https://shortner-pro.vercel.app/api/tokens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -122,7 +122,7 @@ export default function FirebaseDetailsPage() {
 
       const data = await response.json()
 
-      if (response.ok && data.success) {
+      if (response.ok && data.token) {
         setFirebaseTokens([data.token, ...firebaseTokens])
         setVisibleTokens({ [data.token.id]: true })
         setNewTokenName("")
