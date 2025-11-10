@@ -219,12 +219,6 @@ export default function Dashboard() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/dashboard/api-tokens">
-              <Button variant="ghost" className="text-slate-300 hover:text-white">
-                <Key className="w-4 h-4 mr-2" />
-                API Tokens
-              </Button>
-            </Link>
             <div className="flex items-center gap-2 text-slate-300">
               {user?.image && (
                 <img
@@ -250,12 +244,6 @@ export default function Dashboard() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-700 bg-slate-800 p-4 space-y-3">
-            <Link href="/dashboard/api-tokens">
-              <Button variant="ghost" className="w-full text-slate-300">
-                <Key className="w-4 h-4 mr-2" />
-                API Tokens
-              </Button>
-            </Link>
             <div className="flex items-center gap-2 text-slate-300 mb-3">
               {user?.image && (
                 <img
@@ -281,12 +269,20 @@ export default function Dashboard() {
             <h2 className="text-3xl font-bold text-white mb-2">Your Links</h2>
             <p className="text-slate-400">Manage and track your shortened links</p>
           </div>
-          <Link href="/">
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Link
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/dashboard/api-tokens">
+              <Button variant="outline" className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700">
+                <Key className="w-4 h-4 mr-2" />
+                API Tokens
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Create New Link
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Grid */}

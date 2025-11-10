@@ -5,37 +5,33 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2, Copy, Trash2, Key, Plus, LogOut, Menu, X, Eye, EyeOff, AlertCircle } from "lucide-react"
-import Link from "next/link"
+import { Loader2, Copy, Trash2, Plus, Key, Eye, EyeOff, AlertCircle } from "lucide-react"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface APIToken {
-  id: string
-  userId: number
-  userEmail: string
-  token: string
+  id: number
   name: string
-  createdAt: string
-  lastUsedAt?: string
-  isActive: boolean
-  usageCount: number
-  rateLimit: number
+  token: string
+  is_active: boolean
+  rate_limit: number
+  usage_count: number
+  created_at: string
+  last_used_at: string | null
 }
 
 interface User {
   id: number
   email: string
-  name?: string
-  image?: string
 }
 
 export default function APITokensPage() {
@@ -44,12 +40,12 @@ export default function APITokensPage() {
   const [tokens, setTokens] = useState<APIToken[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newTokenName, setNewTokenName] = useState("")
-  const [showDialog, setShowDialog] = useState(false)
-  const [newlyCreatedToken, setNewlyCreatedToken] = useState<APIToken | null>(null)
-  const [visibleTokens, setVisibleTokens] = useState<{ [key: string]: boolean }>({})
-  const [copiedToken, setCopiedToken] = useState<string | null>(null)
+  const [newTokenRateLimit, setNewTokenRateLimit] = useState("1000")
+  const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null)
+  const [visibleTokens, setVisibleTokens] = useState<Set<number>>(new Set())
+  const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -60,107 +56,123 @@ export default function APITokensPage() {
 
     const parsedUser = JSON.parse(userData)
     setUser(parsedUser)
-    fetchTokens(parsedUser.id)
+    fetchTokens()
   }, [router])
 
-  const fetchTokens = async (userId: number) => {
+  const fetchTokens = async () => {
     try {
-      console.log("[v0] Fetching tokens for user:", userId)
-      const response = await fetch(`/api/tokens?userId=${userId}`)
+      const userData = localStorage.getItem("user")
+      if (!userData) return
 
-      console.log("[v0] Response status:", response.status)
+      const user = JSON.parse(userData)
 
-      if (!response.ok) {
-        let errorMessage = "Failed to fetch tokens"
-        try {
-          const errorData = await response.json()
-          console.error("[v0] Error response:", errorData)
-          errorMessage = errorData.error || errorMessage
-        } catch (jsonError) {
-          const errorText = await response.text()
-          console.error("[v0] Error response (text):", errorText)
-          errorMessage = errorText || errorMessage
-        }
-        throw new Error(errorMessage)
-      }
+      const response = await fetch("/api/tokens", {
+        headers: {
+          "x-user-id": user.id.toString(),
+          "x-user-email": user.email,
+        },
+      })
+
+      if (!response.ok) throw new Error("Failed to fetch tokens")
 
       const data = await response.json()
-      console.log("[v0] Fetched tokens:", data.tokens)
       setTokens(data.tokens || [])
     } catch (error) {
       console.error("[v0] Error fetching tokens:", error)
-      const errorMessage = error instanceof Error ? error.message : "Failed to fetch tokens"
-      alert(`Error: ${errorMessage}. Check console for details.`)
     } finally {
       setLoading(false)
     }
   }
 
   const handleCreateToken = async () => {
-    if (!newTokenName.trim() || !user) return
+    if (!newTokenName.trim()) {
+      alert("Please enter a token name")
+      return
+    }
 
     setCreating(true)
+
     try {
+      const userData = localStorage.getItem("user")
+      if (!userData) return
+
+      const user = JSON.parse(userData)
+
       const response = await fetch("/api/tokens", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": user.id.toString(),
+          "x-user-email": user.email,
+        },
         body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email,
-          tokenName: newTokenName,
+          name: newTokenName,
+          rateLimit: Number.parseInt(newTokenRateLimit),
         }),
       })
 
       if (!response.ok) throw new Error("Failed to create token")
 
       const data = await response.json()
-      setNewlyCreatedToken(data.token)
       setTokens([data.token, ...tokens])
+      setNewlyCreatedToken(data.token.token)
       setNewTokenName("")
-      setShowDialog(false)
-      setVisibleTokens({ [data.token.id]: true })
+      setNewTokenRateLimit("1000")
+      setIsDialogOpen(false)
     } catch (error) {
       console.error("[v0] Error creating token:", error)
-      alert("Failed to create API token")
+      alert("Failed to create token")
     } finally {
       setCreating(false)
     }
   }
 
-  const handleRevokeToken = async (token: string) => {
-    if (!confirm("Are you sure you want to revoke this token? This action cannot be undone.")) return
+  const handleRevokeToken = async (tokenId: number) => {
+    if (!confirm("Are you sure you want to revoke this token? This action cannot be undone.")) {
+      return
+    }
 
     try {
-      const response = await fetch(`/api/tokens/${token}`, { method: "DELETE" })
+      const userData = localStorage.getItem("user")
+      if (!userData) return
+
+      const user = JSON.parse(userData)
+
+      const response = await fetch(`/api/tokens/${tokenId}`, {
+        method: "DELETE",
+        headers: {
+          "x-user-id": user.id.toString(),
+        },
+      })
+
       if (!response.ok) throw new Error("Failed to revoke token")
-      setTokens(tokens.filter((t) => t.id !== token))
+
+      setTokens(tokens.map((t) => (t.id === tokenId ? { ...t, is_active: false } : t)))
     } catch (error) {
       console.error("[v0] Error revoking token:", error)
       alert("Failed to revoke token")
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/login")
-  }
-
-  const toggleTokenVisibility = (tokenId: string) => {
-    setVisibleTokens((prev) => ({
-      ...prev,
-      [tokenId]: !prev[tokenId],
-    }))
-  }
-
-  const copyToken = (token: string) => {
+  const handleCopyToken = (token: string, tokenId: number) => {
     navigator.clipboard.writeText(token)
-    setCopiedToken(token)
-    setTimeout(() => setCopiedToken(null), 2000)
+    setCopiedTokenId(tokenId)
+    setTimeout(() => setCopiedTokenId(null), 2000)
+  }
+
+  const toggleTokenVisibility = (tokenId: number) => {
+    const newVisible = new Set(visibleTokens)
+    if (newVisible.has(tokenId)) {
+      newVisible.delete(tokenId)
+    } else {
+      newVisible.add(tokenId)
+    }
+    setVisibleTokens(newVisible)
   }
 
   const maskToken = (token: string) => {
-    if (visibleTokens[token]) return token
-    return `${token.substring(0, 10)}${"•".repeat(30)}${token.substring(token.length - 10)}`
+    const prefix = token.substring(0, 10)
+    return `${prefix}${"•".repeat(50)}`
   }
 
   if (loading) {
@@ -174,67 +186,18 @@ export default function APITokensPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Navigation */}
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/dashboard">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg flex items-center justify-center cursor-pointer">
-                <span className="text-white font-bold text-sm">SP</span>
-              </div>
-            </Link>
-            <h1 className="text-white font-bold text-xl hidden sm:block">API Tokens</h1>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" className="text-slate-300 hover:text-white">
-                Dashboard
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2 text-slate-300">
-              {user?.image && (
-                <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name || "User"}
-                  className="w-8 h-8 rounded-full"
-                />
-              )}
-              <span className="text-sm">{user?.name || user?.email}</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">SP</span>
             </div>
-            <Button onClick={handleLogout} variant="ghost" className="text-slate-300 hover:text-white">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
+            <h1 className="text-white font-bold text-xl">Shortner Pro</h1>
           </div>
-
-          <button className="md:hidden text-slate-300" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <Button onClick={() => router.push("/dashboard")} variant="ghost" className="text-slate-300 hover:text-white">
+            Back to Dashboard
+          </Button>
         </div>
-
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-700 bg-slate-800 p-4 space-y-3">
-            <Link href="/dashboard">
-              <Button variant="ghost" className="w-full text-slate-300">
-                Dashboard
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2 text-slate-300 mb-3">
-              {user?.image && (
-                <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name || "User"}
-                  className="w-8 h-8 rounded-full"
-                />
-              )}
-              <span className="text-sm">{user?.name || user?.email}</span>
-            </div>
-            <Button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        )}
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -242,40 +205,50 @@ export default function APITokensPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h2 className="text-3xl font-bold text-white mb-2">API Tokens</h2>
-            <p className="text-slate-400">Manage your API keys for programmatic access</p>
+            <p className="text-slate-400">Manage your API access tokens for programmatic link creation</p>
           </div>
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto">
+              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
                 <Plus className="w-4 h-4 mr-2" />
-                Create New Token
+                Create Token
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-700">
+            <DialogContent className="bg-slate-800 border-slate-700 text-white">
               <DialogHeader>
-                <DialogTitle className="text-white">Create New API Token</DialogTitle>
+                <DialogTitle>Create New API Token</DialogTitle>
                 <DialogDescription className="text-slate-400">
-                  Generate a new API token for programmatic access to Shortner Pro APIs
+                  Create a new API token to access the Shortner Pro API programmatically.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 mt-4">
+              <div className="space-y-4 py-4">
                 <div>
-                  <Label htmlFor="tokenName" className="text-slate-300">
+                  <Label htmlFor="token-name" className="text-slate-300">
                     Token Name
                   </Label>
                   <Input
-                    id="tokenName"
-                    placeholder="e.g., Production Server, Mobile App"
+                    id="token-name"
+                    placeholder="My Application Token"
                     value={newTokenName}
                     onChange={(e) => setNewTokenName(e.target.value)}
                     className="bg-slate-900 border-slate-600 text-white mt-2"
                   />
                 </div>
-                <Button
-                  onClick={handleCreateToken}
-                  disabled={!newTokenName.trim() || creating}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
+                <div>
+                  <Label htmlFor="rate-limit" className="text-slate-300">
+                    Rate Limit (requests per hour)
+                  </Label>
+                  <Input
+                    id="rate-limit"
+                    type="number"
+                    value={newTokenRateLimit}
+                    onChange={(e) => setNewTokenRateLimit(e.target.value)}
+                    className="bg-slate-900 border-slate-600 text-white mt-2"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleCreateToken} disabled={creating} className="bg-indigo-600 hover:bg-indigo-700">
                   {creating ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -285,44 +258,54 @@ export default function APITokensPage() {
                     "Create Token"
                   )}
                 </Button>
-              </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
 
-        {/* New Token Alert */}
+        {/* Newly Created Token Alert */}
         {newlyCreatedToken && (
-          <Alert className="mb-6 bg-emerald-900/20 border-emerald-700">
-            <AlertCircle className="h-4 w-4 text-emerald-500" />
-            <AlertDescription className="text-emerald-300">
-              Token created successfully! Make sure to copy it now - you won't be able to see it again.
+          <Alert className="mb-6 bg-emerald-900/20 border-emerald-700 text-emerald-200">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-semibold mb-2">Token created successfully! Make sure to copy it now.</p>
+              <p className="text-xs mb-2">You won't be able to see this token again.</p>
+              <div className="bg-slate-900 rounded p-3 flex items-center justify-between gap-2">
+                <code className="text-sm text-emerald-300 break-all">{newlyCreatedToken}</code>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(newlyCreatedToken)
+                    setTimeout(() => setNewlyCreatedToken(null), 2000)
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 flex-shrink-0"
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
 
-        {/* API Documentation Link */}
+        {/* API Documentation Card */}
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
               <Key className="w-6 h-6 text-indigo-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-white font-semibold mb-2">Using Your API Tokens</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">How to Use Your API Token</h3>
               <p className="text-slate-400 text-sm mb-4">
-                Include your API token in the{" "}
-                <code className="bg-slate-900 px-2 py-1 rounded text-indigo-400">Authorization</code> header of your
-                requests as a Bearer token.
+                Include your API token in the Authorization header of your requests:
               </p>
-              <div className="bg-slate-900 p-4 rounded-lg mb-4">
-                <code className="text-sm text-slate-300">
-                  <span className="text-indigo-400">Authorization:</span> Bearer sp_your_token_here
+              <div className="bg-slate-900 rounded-lg p-4">
+                <code className="text-emerald-400 text-sm">
+                  curl -X POST {process.env.NEXT_PUBLIC_BASE_URL}/api/shorten \<br />
+                  &nbsp;&nbsp;-H "Authorization: Bearer YOUR_TOKEN_HERE" \<br />
+                  &nbsp;&nbsp;-H "Content-Type: application/json" \<br />
+                  &nbsp;&nbsp;-d '{"{"}"originalUrl": "https://example.com"{"}"}'
                 </code>
               </div>
-              <Link href="/api-docs">
-                <Button variant="outline" className="border-slate-600 text-slate-300 hover:text-white bg-transparent">
-                  View API Documentation
-                </Button>
-              </Link>
             </div>
           </div>
         </Card>
@@ -335,83 +318,61 @@ export default function APITokensPage() {
             </div>
             <h3 className="text-xl font-bold text-white mb-2">No API tokens yet</h3>
             <p className="text-slate-400 mb-6">Create your first API token to start using the Shortner Pro API</p>
-            <Button onClick={() => setShowDialog(true)} className="bg-indigo-600 hover:bg-indigo-700">
-              Create Your First Token
-            </Button>
           </Card>
         ) : (
           <div className="space-y-4">
             {tokens.map((token) => (
               <Card key={token.id} className="bg-slate-800/50 border-slate-700 p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Key className="w-5 h-5 text-indigo-400" />
-                      <h3 className="text-white font-semibold text-lg">{token.name}</h3>
-                      {token.isActive ? (
-                        <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 text-xs rounded-full">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">Revoked</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-white">{token.name}</h3>
+                      {!token.is_active && (
+                        <span className="px-2 py-1 bg-red-900/30 text-red-400 text-xs rounded-md">Revoked</span>
                       )}
                     </div>
-                    <div className="bg-slate-900 p-3 rounded-lg mb-3 flex items-center gap-2">
-                      <code className="text-sm text-slate-300 flex-1 break-all">{maskToken(token.token)}</code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleTokenVisibility(token.id)}
-                        className="text-slate-400 hover:text-white flex-shrink-0"
-                      >
-                        {visibleTokens[token.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToken(token.token)}
-                        className={`flex-shrink-0 ${
-                          copiedToken === token.token
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                      <div>
-                        <p className="text-slate-500">Created</p>
-                        <p className="text-slate-300">{new Date(token.createdAt).toLocaleDateString()}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm text-slate-400 font-mono bg-slate-900 px-3 py-2 rounded flex-1 min-w-0 break-all">
+                          {visibleTokens.has(token.id) ? token.token : maskToken(token.token)}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleTokenVisibility(token.id)}
+                          className="text-slate-400 hover:text-white flex-shrink-0"
+                        >
+                          {visibleTokens.has(token.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleCopyToken(token.token, token.id)}
+                          className={`flex-shrink-0 ${
+                            copiedTokenId === token.id ? "text-emerald-400" : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div>
-                        <p className="text-slate-500">Last Used</p>
-                        <p className="text-slate-300">
-                          {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString() : "Never"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Usage Count</p>
-                        <p className="text-slate-300">{token.usageCount.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500">Rate Limit</p>
-                        <p className="text-slate-300">{token.rateLimit} req/min</p>
+                      <div className="flex flex-wrap gap-4 text-xs text-slate-400">
+                        <span>Usage: {token.usage_count.toLocaleString()} requests</span>
+                        <span>Rate Limit: {token.rate_limit}/hour</span>
+                        <span>Created: {new Date(token.created_at).toLocaleDateString()}</span>
+                        {token.last_used_at && <span>Last Used: {new Date(token.last_used_at).toLocaleString()}</span>}
                       </div>
                     </div>
                   </div>
-                  <div className="flex lg:flex-col gap-2">
+                  {token.is_active && (
                     <Button
-                      variant="destructive"
-                      size="sm"
                       onClick={() => handleRevokeToken(token.id)}
-                      disabled={!token.isActive}
-                      className="bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                      variant="destructive"
+                      className="bg-red-600 hover:bg-red-700 lg:ml-4"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Revoke
                     </Button>
-                  </div>
+                  )}
                 </div>
               </Card>
             ))}
