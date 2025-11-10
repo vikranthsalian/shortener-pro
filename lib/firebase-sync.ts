@@ -13,9 +13,14 @@ export async function syncLinkToUserFirebase(linkData: {
   expiryDate?: string | null
 }) {
   try {
+    if (!linkData.userId || linkData.userId.trim() === "") {
+      console.log("[v0] Invalid userId, skipping Firebase sync")
+      return { synced: false, reason: "invalid_user_id" }
+    }
+
     console.log("[v0] Checking if user has Firebase credentials for sync:", linkData.userId)
 
-    const userDocRef = db.collection("user_firebase_credentials").doc(linkData.userId)
+    const userDocRef = db.collection("user_firebase_credentials").doc(linkData.userId.toString())
     const doc = await userDocRef.get()
 
     if (!doc.exists) {
@@ -31,7 +36,7 @@ export async function syncLinkToUserFirebase(linkData: {
 
     console.log("[v0] Syncing link to user's Firebase:", credentials.projectId)
 
-    const userAppName = `user-firebase-${linkData.userId}`
+    const userAppName = `user-firebase-${linkData.userId}-${Date.now()}`
 
     // Check if app already exists and delete it to avoid conflicts
     const existingApps = getApps()
@@ -40,7 +45,6 @@ export async function syncLinkToUserFirebase(linkData: {
       await deleteApp(existingApp)
     }
 
-    // Initialize user's Firebase app
     const userApp = initializeApp(
       {
         credential: cert({
@@ -62,12 +66,13 @@ export async function syncLinkToUserFirebase(linkData: {
       title: linkData.title || "",
       description: linkData.description || "",
       createdAt: new Date(linkData.createdAt),
-      expiryDate: linkData.expiryDate || null,
+      expiryDate: linkData.expiryDate ? new Date(linkData.expiryDate) : null,
       clicks: 0,
       impressions: 0,
       isActive: true,
     }
 
+    console.log("[v0] Writing link document to collection 'urls'")
     const docRef = await userDb.collection("urls").add(linkDocument)
 
     console.log("[v0] Link successfully synced to user's Firebase with ID:", docRef.id)
@@ -78,6 +83,13 @@ export async function syncLinkToUserFirebase(linkData: {
     return { synced: true, firebaseDocId: docRef.id }
   } catch (error) {
     console.error("[v0] Error syncing link to user Firebase:", error)
+    if (error instanceof Error) {
+      console.error("[v0] Error details:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      })
+    }
     return { synced: false, reason: "exception", error: String(error) }
   }
 }
