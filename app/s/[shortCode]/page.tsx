@@ -105,25 +105,21 @@ export default function InterstitialPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+  <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
       <div className="text-center space-y-4">
         <Spinner className="w-12 h-12 text-indigo-500 mx-auto" />
         <p className="text-slate-300 text-lg font-medium">Loading your page...</p>
       </div>
     </div>
-  )
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+   {/*  <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Ad Container */}
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
-          {/* Ad Header */}
+    
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
             <p className="text-white text-sm font-semibold">Sponsored Content</p>
           </div>
 
-          {/* Ad Content */}
+        
           <div className="p-8 text-center">
             <div className="mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg mx-auto flex items-center justify-center">
@@ -136,7 +132,7 @@ export default function InterstitialPage() {
               This link is monetized. Please wait while we load the destination page.
             </p>
 
-           {/* <div className="bg-slate-100 rounded-lg p-6 mb-6 min-h-[250px] flex items-center justify-center border-2 border-dashed border-slate-300">
+           <div className="bg-slate-100 rounded-lg p-6 mb-6 min-h-[250px] flex items-center justify-center border-2 border-dashed border-slate-300">
               {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID ? (
                 <ins
                   className="adsbygoogle"
@@ -152,9 +148,9 @@ export default function InterstitialPage() {
                   <p className="text-slate-400 text-xs">Add NEXT_PUBLIC_ADSENSE_CLIENT_ID to environment variables</p>
                 </div>
               )}
-            </div>*/}
+            </div>
 
-            {/* Timer and Skip Button */}
+           
             <div className="space-y-4">
               <div className="flex items-center justify-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -185,13 +181,14 @@ export default function InterstitialPage() {
             </div>
           </div>
 
-          {/* Footer */}
+       
           <div className="bg-slate-50 px-6 py-3 border-t border-slate-200">
             <p className="text-xs text-slate-500 text-center">By continuing, you agree to our Terms of Service</p>
           </div>
         </div>
       </div>
     </div>
+    */}
   )
 }
 
