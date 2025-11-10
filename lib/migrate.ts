@@ -126,6 +126,22 @@ export async function runMigration() {
       console.log("[v0] Expiry column already exists or error adding it")
     }
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        url_id INTEGER NOT NULL REFERENCES urls(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        message TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `
+
+    await sql`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`
+    await sql`CREATE INDEX IF NOT EXISTS idx_notifications_url_id ON notifications(url_id)`
+    await sql`CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read)`
+
     migrationRun = true
     console.log("[v0] Database migration completed successfully")
   } catch (error) {

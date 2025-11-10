@@ -23,6 +23,7 @@ import {
   ExternalLink,
   BarChart3,
   Key,
+  Bell,
 } from "lucide-react"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -65,6 +66,7 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [selectedLinks, setSelectedLinks] = useState<number[]>([])
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
 
   useEffect(() => {
     const userData = localStorage.getItem("user")
@@ -76,6 +78,7 @@ export default function Dashboard() {
     const parsedUser = JSON.parse(userData)
     setUser(parsedUser)
     fetchUserLinks(parsedUser.id)
+    fetchNotificationCount(parsedUser.id)
   }, [router])
 
   const fetchUserLinks = async (userId: number) => {
@@ -92,39 +95,23 @@ export default function Dashboard() {
     }
   }
 
-  useEffect(() => {
-    let filtered = [...links]
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (link) =>
-          link.short_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          link.original_url.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+  const fetchNotificationCount = async (userId: number) => {
+    try {
+      const response = await fetch("/api/notifications", {
+        headers: {
+          "x-user-id": userId.toString(),
+          "x-user-email": user?.email || "",
+        },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const unreadCount = data.notifications.filter((n: any) => !n.is_read).length
+        setUnreadNotifications(unreadCount)
+      }
+    } catch (error) {
+      console.error("[v0] Error fetching notification count:", error)
     }
-
-    filtered.sort((a, b) => {
-      let aValue: any = a[sortField]
-      let bValue: any = b[sortField]
-
-      if (sortField === "estimated_earnings") {
-        aValue = Number.parseFloat(a.estimated_earnings || "0")
-        bValue = Number.parseFloat(b.estimated_earnings || "0")
-      } else if (sortField === "created_at") {
-        aValue = new Date(a.created_at).getTime()
-        bValue = new Date(b.created_at).getTime()
-      }
-
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-
-    setFilteredLinks(filtered)
-    setCurrentPage(1)
-  }, [searchQuery, sortField, sortOrder, links])
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("user")
@@ -219,6 +206,16 @@ export default function Dashboard() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-4">
+            <Link href="/dashboard/notifications">
+              <Button variant="ghost" className="text-slate-300 hover:text-white relative">
+                <Bell className="w-5 h-5" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadNotifications}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <div className="flex items-center gap-2 text-slate-300">
               {user?.image && (
                 <img
@@ -244,6 +241,17 @@ export default function Dashboard() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-700 bg-slate-800 p-4 space-y-3">
+            <Link href="/dashboard/notifications">
+              <Button variant="outline" className="w-full relative bg-transparent">
+                <Bell className="w-4 h-4 mr-2" />
+                Notifications
+                {unreadNotifications > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                    {unreadNotifications}
+                  </span>
+                )}
+              </Button>
+            </Link>
             <div className="flex items-center gap-2 text-slate-300 mb-3">
               {user?.image && (
                 <img
@@ -395,15 +403,7 @@ export default function Dashboard() {
                     </TableHead>
                     <TableHead className="text-slate-300">Short Code</TableHead>
                     <TableHead className="text-slate-300 hidden lg:table-cell">Original URL</TableHead>
-                    <TableHead
-                      className="text-slate-300 cursor-pointer select-none"
-                      onClick={() => handleSort("created_at")}
-                    >
-                      <div className="flex items-center gap-1">
-                        Created
-                        <ArrowUpDown className="w-3 h-3" />
-                      </div>
-                    </TableHead>
+                
                     <TableHead
                       className="text-slate-300 cursor-pointer select-none text-right"
                       onClick={() => handleSort("total_clicks")}
@@ -418,7 +418,16 @@ export default function Dashboard() {
                       onClick={() => handleSort("total_impressions")}
                     >
                       <div className="flex items-center gap-1 justify-end">
-                        Impressions
+                        Imprs.
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </TableHead>
+                        <TableHead
+                      className="text-slate-300 cursor-pointer select-none"
+                      onClick={() => handleSort("created_at")}
+                    >
+                      <div className="flex items-center gap-1">
+                        Created
                         <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </TableHead>
@@ -427,7 +436,7 @@ export default function Dashboard() {
                       onClick={() => handleSort("estimated_earnings")}
                     >
                       <div className="flex items-center gap-1 justify-end">
-                        Earnings
+                        Expiry Date
                         <ArrowUpDown className="w-3 h-3" />
                       </div>
                     </TableHead>
@@ -474,18 +483,22 @@ export default function Dashboard() {
                           </a>
                         </div>
                       </TableCell>
-                      <TableCell className="text-slate-300 text-sm">
-                        {new Date(link.created_at).toLocaleDateString()}
-                      </TableCell>
+                   
+                     
                       <TableCell className="text-slate-300 text-sm text-right font-semibold">
                         {link.total_clicks.toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-slate-400 text-sm text-right hidden md:table-cell">
+                      <TableCell className="text-slate-300 text-sm text-right hidden md:table-cell">
                         {link.total_impressions.toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-amber-400 text-sm text-right font-semibold hidden md:table-cell">
-                        ${link.estimated_earnings}
-                      </TableCell>
+                      <TableCell className="text-slate-300 text-sm">
+                    {new Date(link.created_at).toLocaleDateString()}
+                     </TableCell>
+                  <TableCell className="text-amber-400 text-sm text-right font-semibold hidden md:table-cell">
+  {link.expiry_date
+    ? new Date(link.expiry_date).toLocaleDateString()
+    : "Never"}
+</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Link href={`/analytics/${link.short_code}`}>

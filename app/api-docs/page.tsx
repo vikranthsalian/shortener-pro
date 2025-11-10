@@ -136,7 +136,11 @@ const endpoints: Endpoint[] = [
         title: { type: "string", required: false, description: "Custom title for the link" },
         description: { type: "string", required: false, description: "Description of the link" },
         userId: { type: "string", required: false, description: "User ID (for authenticated users)" },
-        expiry: { type: "string", required: false, description: 'Expiry option: "7days", "1month", or "never"' },
+        expiry: {
+          type: "string",
+          required: false,
+          description: 'Expiry option: "7days", "1month", or "never" (default: never expire)',
+        },
       },
     },
     responses: [
@@ -149,7 +153,7 @@ const endpoints: Endpoint[] = [
           originalUrl: "https://example.com",
           shortUrl: "https://shortner-pro.vercel.app/s/abc123",
           createdAt: "2024-01-01T00:00:00Z",
-          expiryDate: "2024-01-08T00:00:00Z",
+          expiryDate: null,
         },
       },
       {
@@ -224,7 +228,6 @@ const endpoints: Endpoint[] = [
               created_at: "2024-01-01T00:00:00Z",
               total_clicks: 150,
               total_impressions: 500,
-              estimated_earnings: "0.25",
               expiry_date: null,
             },
           ],
@@ -304,8 +307,8 @@ const endpoints: Endpoint[] = [
             title: "Example",
             total_clicks: 150,
             total_impressions: 500,
-            total_earnings: "0.25",
             ctr: "30.00",
+            expiry_date: null,
           },
           dailyStats: [
             {
@@ -313,7 +316,6 @@ const endpoints: Endpoint[] = [
               clicks: 15,
               impressions: 50,
               ctr: 30.0,
-              earnings: 0.025,
             },
           ],
         },
