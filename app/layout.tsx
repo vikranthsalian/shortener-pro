@@ -131,6 +131,12 @@ export default function RootLayout({
         {/* Preconnect to Google APIs for performance */}
         <link rel="preconnect" href="https://accounts.google.com" />
         <link rel="dns-prefetch" href="https://accounts.google.com" />
+
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`font-sans antialiased flex flex-col min-h-screen`}>
         {children}

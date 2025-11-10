@@ -215,109 +215,154 @@ export default function Home() {
         </section>
 
         {/* Main Form Card */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <Card className="bg-slate-800 border-slate-700 p-8">
-            <form onSubmit={handleShorten} className="space-y-4" aria-label="Create short link form">
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="original-url">
-                  Original URL
-                </label>
-                <Input
-                  id="original-url"
-                  type="url"
-                  placeholder="https://example.com/very/long/url"
-                  value={originalUrl}
-                  onChange={(e) => setOriginalUrl(e.target.value)}
-                  required
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                  aria-label="Enter the URL you want to shorten"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-title">
-                  Title (Optional)
-                </label>
-                <Input
-                  id="link-title"
-                  type="text"
-                  placeholder="My awesome link"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400"
-                  aria-label="Optional title for your short link"
-                />
-              </div>
-
-              {user && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-expiry">
-                    Link Expiry
-                  </label>
-                  <select
-                    id="link-expiry"
-                    value={expiry}
-                    onChange={(e) => setExpiry(e.target.value as "7days" | "1month" | "never")}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
-                    aria-label="Choose link expiry option"
-                  >
-                    <option value="7days">Expire in 7 days</option>
-                    <option value="1month">Expire in 1 month</option>
-                    <option value="never">Never expire</option>
-                  </select>
-                </div>
-              )}
-
-              {!user && (
-                <div
-                  className="bg-amber-900/30 border border-amber-700 text-amber-200 px-4 py-3 rounded-lg text-sm"
-                  role="alert"
-                >
-                  <p className="font-semibold mb-1">⏰ Note: Your link will expire in 7 days</p>
-                  <p className="text-xs opacity-90">Sign in to create permanent links or customize expiry settings.</p>
-                </div>
-              )}
-
-              {error && (
-                <div
-                  className="bg-red-900/20 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm"
-                  role="alert"
-                >
-                  {error}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={loading || !originalUrl}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 h-10"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Short Link"
-                )}
-              </Button>
-
-              {!user && (
-                <>
-                  <div className="text-center mb-6 mt-6">
-                    <p className="text-slate-300 font-medium mb-4">OR</p>
+        <div className="max-w-7xl mx-auto mb-12 px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Ad */}
+            <div className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-24">
+                <Card className="bg-slate-800 border-slate-700 p-4">
+                  <p className="text-slate-400 text-xs text-center mb-2">Advertisement</p>
+                  <div className="bg-slate-900 rounded-lg flex items-center justify-center h-[600px]">
+                    <ins
+                      className="adsbygoogle"
+                      style={{ display: "block" }}
+                      data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
+                      data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
+                      data-ad-format="vertical"
+                      data-full-width-responsive="false"
+                    />
                   </div>
-                  <div id="google-signin-button-home" className="mb-4"></div>
+                </Card>
+              </div>
+            </div>
 
-                  {!googleScriptLoaded && (
-                    <div className="w-full bg-slate-700 text-slate-300 py-3 rounded-lg text-center text-sm">
-                      Loading Google Sign-In...
+            {/* Center Form */}
+            <div className="lg:col-span-6">
+              <Card className="bg-slate-800 border-slate-700 p-8">
+                <form onSubmit={handleShorten} className="space-y-4" aria-label="Create short link form">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="original-url">
+                      Original URL
+                    </label>
+                    <Input
+                      id="original-url"
+                      type="url"
+                      placeholder="https://example.com/very/long/url"
+                      value={originalUrl}
+                      onChange={(e) => setOriginalUrl(e.target.value)}
+                      required
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                      aria-label="Enter the URL you want to shorten"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-title">
+                      Title (Optional)
+                    </label>
+                    <Input
+                      id="link-title"
+                      type="text"
+                      placeholder="My awesome link"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="bg-slate-700 border border-slate-600 text-white placeholder:text-slate-400"
+                      aria-label="Optional title for your short link"
+                    />
+                  </div>
+
+                  {user && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-expiry">
+                        Link Expiry
+                      </label>
+                      <select
+                        id="link-expiry"
+                        value={expiry}
+                        onChange={(e) => setExpiry(e.target.value as "7days" | "1month" | "never")}
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
+                        aria-label="Choose link expiry option"
+                      >
+                        <option value="7days">Expire in 7 days</option>
+                        <option value="1month">Expire in 1 month</option>
+                        <option value="never">Never expire</option>
+                      </select>
                     </div>
                   )}
-                </>
-              )}
-            </form>
-          </Card>
+
+                  {!user && (
+                    <div
+                      className="bg-amber-900/30 border border-amber-700 text-amber-200 px-4 py-3 rounded-lg text-sm"
+                      role="alert"
+                    >
+                      <p className="font-semibold mb-1">⏰ Note: Your link will expire in 7 days</p>
+                      <p className="text-xs opacity-90">
+                        Sign in to create permanent links or customize expiry settings.
+                      </p>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div
+                      className="bg-red-900/20 border border-red-700 text-red-200 px-4 py-3 rounded-lg text-sm"
+                      role="alert"
+                    >
+                      {error}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={loading || !originalUrl}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 h-10"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Short Link"
+                    )}
+                  </Button>
+
+                  {!user && (
+                    <>
+                      <div className="text-center mb-6 mt-6">
+                        <p className="text-slate-300 font-medium mb-4">OR</p>
+                      </div>
+                      <div id="google-signin-button-home" className="mb-4"></div>
+
+                      {!googleScriptLoaded && (
+                        <div className="w-full bg-slate-700 text-slate-300 py-3 rounded-lg text-center text-sm">
+                          Loading Google Sign-In...
+                        </div>
+                      )}
+                    </>
+                  )}
+                </form>
+              </Card>
+            </div>
+
+            {/* Right Ad */}
+            <div className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-24">
+                <Card className="bg-slate-800 border-slate-700 p-4">
+                  <p className="text-slate-400 text-xs text-center mb-2">Advertisement</p>
+                  <div className="bg-slate-900 rounded-lg flex items-center justify-center h-[600px]">
+                    <ins
+                      className="adsbygoogle"
+                      style={{ display: "block" }}
+                      data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
+                      data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
+                      data-ad-format="vertical"
+                      data-full-width-responsive="false"
+                    />
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Result Card */}
