@@ -83,16 +83,26 @@ export default function FirebaseDetailsPage() {
 
   const loadFirebaseDetails = async (userId: number) => {
     try {
-      const response = await fetch(`/api/firebase-credentials?userId=${userId}`)
-      const data = await response.json()
+      const [credentialsResponse, tokensResponse] = await Promise.all([
+        fetch(`/api/firebase-credentials?userId=${userId}`),
+        fetch(`/api/tokens?userId=${userId}`),
+      ])
 
-      if (data.success && data.hasCredentials) {
+      const credentialsData = await credentialsResponse.json()
+      const tokensData = await tokensResponse.json()
+
+      if (credentialsData.success && credentialsData.hasCredentials) {
         setSavedFirebaseConfig({
-          projectId: data.credentials.projectId,
-          clientEmail: data.credentials.clientEmail,
-          createdAt: data.credentials.createdAt,
-          verified: data.credentials.verified,
+          projectId: credentialsData.credentials.projectId,
+          clientEmail: credentialsData.credentials.clientEmail,
+          createdAt: credentialsData.credentials.createdAt,
+          verified: credentialsData.credentials.verified,
         })
+
+        if (tokensData.tokens) {
+          console.log("[v0] Loaded tokens:", tokensData.tokens)
+          setFirebaseTokens(tokensData.tokens)
+        }
       } else {
         // No Firebase credentials found, redirect back
         router.push("/dashboard/api-tokens")
@@ -117,7 +127,7 @@ export default function FirebaseDetailsPage() {
           userId: user.id,
           firebaseAppId: savedFirebaseConfig.projectId,
           tokenName: newTokenName,
-          userEmail:user.email
+          userEmail: user.email,
         }),
       })
 
@@ -128,6 +138,9 @@ export default function FirebaseDetailsPage() {
         setVisibleTokens({ [data.token.id]: true })
         setNewTokenName("")
         setShowCreateDialog(false)
+
+        await loadFirebaseDetails(user.id)
+
         alert("Token created successfully in your Firebase database!")
       } else {
         alert(data.error || "Failed to create token")
