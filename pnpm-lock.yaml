@@ -132,7 +132,7 @@ importers:
         specifier: latest
         version: 13.6.0
       google-auth-library:
-        specifier: latest
+        specifier: 10.5.0
         version: 10.5.0
       input-otp:
         specifier: 1.4.1

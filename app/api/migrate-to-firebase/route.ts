@@ -46,80 +46,61 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Fetched data - URLs:", urls.length, "Analytics:", analytics.length)
 
-    // Migrate to Firebase using REST API
-    const firebaseUrl = `https://firestore.googleapis.com/v1/projects/${firebaseProjectId}/databases/(default)/documents`
+    const admin = await import("firebase-admin")
 
-    // Create access token using service account credentials
-    const { GoogleAuth } = await import("google-auth-library")
-    const auth = new GoogleAuth({
-      credentials: {
-        client_email: firebaseClientEmail,
-        private_key: firebasePrivateKey.replace(/\\n/g, "\n"),
+    // Initialize a temporary Firebase app for this user's database
+    const appName = `migration-${userId}-${Date.now()}`
+    const userApp = admin.initializeApp(
+      {
+        credential: admin.credential.cert({
+          projectId: firebaseProjectId,
+          clientEmail: firebaseClientEmail,
+          privateKey: firebasePrivateKey.replace(/\\n/g, "\n"),
+        }),
       },
-      scopes: ["https://www.googleapis.com/auth/datastore"],
-    })
+      appName,
+    )
 
-    const client = await auth.getClient()
-    const accessToken = await client.getAccessToken()
+    const userDb = userApp.firestore()
 
-    if (!accessToken.token) {
-      throw new Error("Failed to get Firebase access token")
-    }
-
-    console.log("[v0] Firebase access token obtained")
+    console.log("[v0] Firebase Admin SDK initialized")
 
     // Migrate user data
-    const userDoc = {
-      fields: {
-        userId: { integerValue: user.id.toString() },
-        email: { stringValue: user.email },
-        name: { stringValue: user.name || "" },
-        createdAt: { timestampValue: user.created_at },
-        provider: { stringValue: user.provider || "email" },
-        migratedAt: { timestampValue: new Date().toISOString() },
-      },
-    }
-
-    await fetch(`${firebaseUrl}/users/${userId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userDoc),
-    })
+    await userDb
+      .collection("users")
+      .doc(userId.toString())
+      .set({
+        userId: user.id,
+        email: user.email,
+        name: user.name || "",
+        createdAt: user.created_at,
+        provider: user.provider || "email",
+        migratedAt: new Date().toISOString(),
+      })
 
     console.log("[v0] User data migrated")
 
     // Migrate URLs
     let migratedUrls = 0
     for (const url of urls) {
-      const urlDoc = {
-        fields: {
-          urlId: { integerValue: url.id.toString() },
-          userId: { integerValue: userId.toString() },
-          shortCode: { stringValue: url.short_code },
-          originalUrl: { stringValue: url.original_url },
-          title: { stringValue: url.title || "" },
-          description: { stringValue: url.description || "" },
-          createdAt: { timestampValue: url.created_at },
-          updatedAt: { timestampValue: url.updated_at },
-          isActive: { booleanValue: url.is_active },
-          totalClicks: { integerValue: url.total_clicks.toString() },
-          totalImpressions: { integerValue: url.total_impressions.toString() },
-          estimatedEarnings: { stringValue: url.estimated_earnings },
-          expiryDate: url.expiry_date ? { timestampValue: url.expiry_date } : { nullValue: null },
-        },
-      }
-
-      await fetch(`${firebaseUrl}/urls/${url.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${accessToken.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(urlDoc),
-      })
+      await userDb
+        .collection("urls")
+        .doc(url.id.toString())
+        .set({
+          urlId: url.id,
+          userId: userId,
+          shortCode: url.short_code,
+          originalUrl: url.original_url,
+          title: url.title || "",
+          description: url.description || "",
+          createdAt: url.created_at,
+          updatedAt: url.updated_at,
+          isActive: url.is_active,
+          totalClicks: url.total_clicks,
+          totalImpressions: url.total_impressions,
+          estimatedEarnings: url.estimated_earnings,
+          expiryDate: url.expiry_date || null,
+        })
       migratedUrls++
     }
 
@@ -128,29 +109,24 @@ export async function POST(request: NextRequest) {
     // Migrate analytics
     let migratedAnalytics = 0
     for (const analytic of analytics) {
-      const analyticDoc = {
-        fields: {
-          analyticsId: { integerValue: analytic.id.toString() },
-          urlId: { integerValue: analytic.url_id.toString() },
-          date: { stringValue: analytic.date },
-          totalClicks: { integerValue: analytic.total_clicks?.toString() || "0" },
-          totalImpressions: { integerValue: analytic.total_impressions?.toString() || "0" },
-          estimatedEarnings: { stringValue: analytic.estimated_earnings?.toString() || "0" },
-        },
-      }
-
-      await fetch(`${firebaseUrl}/analytics/${analytic.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${accessToken.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(analyticDoc),
-      })
+      await userDb
+        .collection("analytics")
+        .doc(analytic.id.toString())
+        .set({
+          analyticsId: analytic.id,
+          urlId: analytic.url_id,
+          date: analytic.date,
+          totalClicks: analytic.total_clicks || 0,
+          totalImpressions: analytic.total_impressions || 0,
+          estimatedEarnings: analytic.estimated_earnings?.toString() || "0",
+        })
       migratedAnalytics++
     }
 
     console.log("[v0] Analytics migrated:", migratedAnalytics)
+
+    // Clean up the temporary Firebase app
+    await userApp.delete()
 
     return NextResponse.json({
       success: true,
