@@ -17,6 +17,7 @@ import {
   Link2,
   Smartphone,
 } from "lucide-react"
+import Navbar from "@/components/navbar"
 
 export default function FeaturesPage() {
   const router = useRouter()
@@ -24,7 +25,7 @@ export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Navigation */}
-      <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
+     <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">
@@ -46,9 +47,7 @@ export default function FeaturesPage() {
               Contact
             </a>
           </div>
-          <Button onClick={() => router.push("/dashboard")} className="bg-indigo-600 hover:bg-indigo-700">
-            Get Started
-          </Button>
+      
         </nav>
       </header>
 

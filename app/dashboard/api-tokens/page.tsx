@@ -30,6 +30,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import DashboardNav from "@/components/dashboard-nav"
 
 interface APIToken {
   id: number
@@ -220,20 +221,7 @@ export default function APITokensPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Navigation */}
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SP</span>
-            </div>
-            <h1 className="text-white font-bold text-xl">Shortner Pro</h1>
-          </div>
-          <Button onClick={() => router.push("/dashboard")} variant="ghost" className="text-slate-300 hover:text-white">
-            Back to Dashboard
-          </Button>
-        </div>
-      </nav>
+      <DashboardNav />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}

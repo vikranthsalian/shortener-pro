@@ -4,8 +4,6 @@ import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Loader2, ArrowLeft, Copy, TrendingUp, TrendingDown, Eye, MousePointerClick, Activity } from "lucide-react"
-import Link from "next/link"
 import {
   AreaChart,
   Area,
@@ -20,6 +18,8 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import { Copy, TrendingUp, TrendingDown, Eye, MousePointerClick, Activity } from "lucide-react"
+import DashboardNav from "@/components/dashboard-nav"
 
 interface LinkAnalytics {
   id: number
@@ -60,6 +60,7 @@ export default function AnalyticsPage() {
   const [detailedAnalytics, setDetailedAnalytics] = useState<DetailedAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const calculateTrend = (current: number, previous: number) => {
     if (previous === 0) return 0
@@ -115,6 +116,7 @@ export default function AnalyticsPage() {
       }
     } catch (error) {
       console.error("[v0] Error fetching analytics:", error)
+      setError("Failed to load analytics data.")
     } finally {
       setLoading(false)
     }
@@ -129,20 +131,17 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="text-white">Loading analytics...</div>
       </div>
     )
   }
 
-  if (!analytics) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <Card className="bg-slate-800/50 border-slate-700 p-8 text-center">
-          <p className="text-slate-300 mb-4">Link not found</p>
-          <Link href="/dashboard">
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Back to Dashboard</Button>
-          </Link>
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
+        <Card className="bg-slate-800/50 border-slate-700 p-8">
+          <p className="text-red-400">{error}</p>
         </Card>
       </div>
     )
@@ -151,17 +150,8 @@ export default function AnalyticsPage() {
   const trends = getRecentTrend()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2 text-slate-300 hover:text-white transition">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back to Dashboard</span>
-          </Link>
-          <h1 className="text-white font-bold text-xl">Link Analytics</h1>
-          <div className="w-40"></div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
+      <DashboardNav />
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Card className="bg-slate-800/50 border-slate-700 p-6 mb-6">

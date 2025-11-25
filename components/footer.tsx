@@ -83,12 +83,12 @@ export default function Footer() {
                   How it Works
                 </Link>
               </li>
-              <li>
+              {/*  <li>
                 <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm transition">
                   Dashboard
                 </Link>
               </li>
-              <li>
+             <li>
                 <Link href="/login" className="text-slate-400 hover:text-white text-sm transition">
                   Sign In
                 </Link>
@@ -97,7 +97,7 @@ export default function Footer() {
                 <Link href="/register" className="text-slate-400 hover:text-white text-sm transition">
                   Sign Up
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -109,12 +109,12 @@ export default function Footer() {
                 <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition">
                   Blog
                 </Link>
-              </li>
-              <li>
+              </li> 
+              {/* <li>
                 <Link href="/resources" className="text-slate-400 hover:text-white text-sm transition">
                   Free Resources
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition">
                   FAQ
@@ -133,7 +133,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Legal Links 
           <div>
             <h4 className="text-white font-semibold mb-4">Legal</h4>
             <ul className="space-y-2">
@@ -158,7 +158,8 @@ export default function Footer() {
                 </a>
               </li>
             </ul>
-          </div>
+          </div>*/}
+          
         </div>
 
         {/* Bottom Bar */}

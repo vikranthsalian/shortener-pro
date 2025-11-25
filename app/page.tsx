@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Copy, Check, Loader2, TrendingUp, BarChart3, DollarSign, Shield, Zap, Users } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Copy, ExternalLink, TrendingUp, Shield, BarChart3, Zap } from "lucide-react"
+import { Toaster } from "sonner"
+import Navbar from "@/components/navbar"
 
 export default function Home() {
   const router = useRouter()
@@ -144,68 +148,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Navigation */}
-      <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
-        <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between" aria-label="Main navigation">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">
-              SP
-            </div>
-            <h1 className="text-white font-bold text-2xl">Shortner Pro</h1>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="/features" className="text-slate-300 hover:text-white transition">
-              Features
-            </a>
-            <a href="/how-it-works" className="text-slate-300 hover:text-white transition">
-              How it Works
-            </a>
-            <a href="/blog" className="text-slate-300 hover:text-white transition">
-              Blog
-            </a>
-            <a href="/resources" className="text-slate-300 hover:text-white transition">
-              Resources
-            </a>
-            <a href="/faq" className="text-slate-300 hover:text-white transition">
-              FAQ
-            </a>
-            <a href="/contact" className="text-slate-300 hover:text-white transition">
-              Contact
-            </a>
-          </div>
-          <div className="flex gap-4">
-            {user ? (
-              <>
-                <Button
-                  variant="ghost"
-                  className="text-slate-300 hover:text-white"
-                  onClick={() => router.push("/dashboard")}
-                >
-                  Dashboard
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="text-slate-300 hover:text-white"
-                  onClick={() => {
-                    localStorage.removeItem("user")
-                    setUser(null)
-                  }}
-                >
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <Button variant="ghost" className="text-slate-300 hover:text-white" onClick={() => router.push("/login")}>
-                Sign In
-              </Button>
-            )}
-          </div>
-        </nav>
-      </header>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col">
+      <Toaster />
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-4 py-20">
+      <Navbar />
+
+      <main className="flex-1">
+        {/* Hero Section */}
         <section className="text-center mb-12">
           <h2 className="text-5xl font-bold text-white mb-4">Your Links, Shorter & Smarter</h2>
           <p className="text-xl text-slate-300 max-w-2xl mx-auto">
@@ -223,14 +172,7 @@ export default function Home() {
                 <Card className="bg-slate-800 border-slate-700 p-4">
                   <p className="text-slate-400 text-xs text-center mb-2">Advertisement</p>
                   <div className="bg-slate-900 rounded-lg flex items-center justify-center h-[600px]">
-                    <ins
-                      className="adsbygoogle"
-                      style={{ display: "block" }}
-                      data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
-                      data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
-                      data-ad-format="vertical"
-                      data-full-width-responsive="false"
-                    />
+                    {/* Advertisement code here */}
                   </div>
                 </Card>
               </div>
@@ -241,9 +183,9 @@ export default function Home() {
               <Card className="bg-slate-800 border-slate-700 p-8">
                 <form onSubmit={handleShorten} className="space-y-4" aria-label="Create short link form">
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="original-url">
+                    <Label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="original-url">
                       Original URL
-                    </label>
+                    </Label>
                     <Input
                       id="original-url"
                       type="url"
@@ -257,9 +199,9 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-title">
+                    <Label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-title">
                       Title (Optional)
-                    </label>
+                    </Label>
                     <Input
                       id="link-title"
                       type="text"
@@ -273,20 +215,25 @@ export default function Home() {
 
                   {user && (
                     <div>
-                      <label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-expiry">
+                      <Label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-expiry">
                         Link Expiry
-                      </label>
-                      <select
+                      </Label>
+                      <Select
                         id="link-expiry"
                         value={expiry}
                         onChange={(e) => setExpiry(e.target.value as "7days" | "1month" | "never")}
                         className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
                         aria-label="Choose link expiry option"
                       >
-                        <option value="7days">Expire in 7 days</option>
-                        <option value="1month">Expire in 1 month</option>
-                        <option value="never">Never expire</option>
-                      </select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select expiry" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="7days">Expire in 7 days</SelectItem>
+                          <SelectItem value="1month">Expire in 1 month</SelectItem>
+                          <SelectItem value="never">Never expire</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
 
@@ -318,7 +265,7 @@ export default function Home() {
                   >
                     {loading ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <ExternalLink className="w-4 h-4 mr-2 animate-spin" />
                         Creating...
                       </>
                     ) : (
@@ -350,14 +297,7 @@ export default function Home() {
                 <Card className="bg-slate-800 border-slate-700 p-4">
                   <p className="text-slate-400 text-xs text-center mb-2">Advertisement</p>
                   <div className="bg-slate-900 rounded-lg flex items-center justify-center h-[600px]">
-                    <ins
-                      className="adsbygoogle"
-                      style={{ display: "block" }}
-                      data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
-                      data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
-                      data-ad-format="vertical"
-                      data-full-width-responsive="false"
-                    />
+                    {/* Advertisement code here */}
                   </div>
                 </Card>
               </div>
@@ -371,7 +311,7 @@ export default function Home() {
             <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-700 p-8">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Check className="w-5 h-5 text-green-400" />
+                  <ExternalLink className="w-5 h-5 text-green-400" />
                   <p className="text-green-200 font-semibold">Link created successfully!</p>
                 </div>
 
@@ -379,7 +319,7 @@ export default function Home() {
                   <code className="text-blue-300 font-mono text-sm break-all">{shortUrl}</code>
                   <Button variant="ghost" onClick={handleCopy} className="text-slate-300 hover:text-white">
                     {copied ? (
-                      <Check className="w-4 h-4 text-green-400" />
+                      <ExternalLink className="w-4 h-4 text-green-400" />
                     ) : (
                       <Copy className="w-4 h-4 text-slate-400" />
                     )}
@@ -411,7 +351,7 @@ export default function Home() {
             </article>
 
             <article className="bg-slate-800 rounded-lg p-6 border border-slate-700 hover:border-indigo-500 transition">
-              <DollarSign className="w-8 h-8 text-indigo-400 mb-4" />
+              <Zap className="w-8 h-8 text-indigo-400 mb-4" />
               <h4 className="text-lg font-semibold text-white mb-2">Monetize Your Links</h4>
               <p className="text-slate-300 text-sm">
                 Earn money from every click with our integrated monetization platform and ad network.
@@ -477,7 +417,7 @@ export default function Home() {
 
             <article className="text-center">
               <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-indigo-400" />
+                <ExternalLink className="w-8 h-8 text-indigo-400" />
               </div>
               <h4 className="text-xl font-semibold text-white mb-3">Trusted by Thousands</h4>
               <p className="text-slate-300">
@@ -530,7 +470,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* CTA Section */}
+        {/* CTA Section 
         <section className="mt-24 mb-12 text-center">
           <div className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border border-indigo-700 rounded-2xl p-12 max-w-3xl mx-auto">
             <h3 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h3>
@@ -556,7 +496,7 @@ export default function Home() {
               </Button>
             </div>
           </div>
-        </section>
+        </section>*/}
       </main>
     </div>
   )

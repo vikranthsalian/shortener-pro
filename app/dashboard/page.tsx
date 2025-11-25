@@ -12,9 +12,6 @@ import {
   TrendingUp,
   Eye,
   Plus,
-  LogOut,
-  Menu,
-  X,
   Search,
   ArrowUpDown,
   ChevronLeft,
@@ -22,7 +19,6 @@ import {
   ExternalLink,
   BarChart3,
   Key,
-  Bell,
   AlertTriangle,
 } from "lucide-react"
 import Link from "next/link"
@@ -30,6 +26,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+import DashboardNav from "@/components/dashboard-nav"
+import { Toaster } from "@/components/ui/toaster"
 
 interface UserLink {
   id: number
@@ -160,7 +158,7 @@ export default function Dashboard() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedLinks.length === paginatedLinks.length) {
+    if (selectedLinks.length === paginatedLinks.length && paginatedLinks.length > 0) {
       setSelectedLinks([])
     } else {
       setSelectedLinks(paginatedLinks.map((l) => l.id))
@@ -219,83 +217,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Navigation */}
-      <nav className="border-b border-slate-700 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SP</span>
-            </div>
-            <h1 className="text-white font-bold text-xl hidden sm:block">Shortner Pro</h1>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
+      <Toaster />
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/dashboard/notifications">
-              <Button variant="ghost" className="text-slate-300 hover:text-white relative">
-                <Bell className="w-5 h-5" />
-                {unreadNotifications > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {unreadNotifications}
-                  </span>
-                )}
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2 text-slate-300">
-              {user?.image && (
-                <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name || "User"}
-                  className="w-8 h-8 rounded-full"
-                />
-              )}
-              <span className="text-sm">{user?.name || user?.email}</span>
-            </div>
-            <Button onClick={handleLogout} variant="ghost" className="text-slate-300 hover:text-white">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+      <DashboardNav />
 
-          {/* Mobile Menu Button */}
-          <button className="md:hidden text-slate-300" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-700 bg-slate-800 p-4 space-y-3">
-            <Link href="/dashboard/notifications">
-              <Button variant="outline" className="w-full relative bg-transparent">
-                <Bell className="w-4 h-4 mr-2" />
-                Notifications
-                {unreadNotifications > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                    {unreadNotifications}
-                  </span>
-                )}
-              </Button>
-            </Link>
-            <div className="flex items-center gap-2 text-slate-300 mb-3">
-              {user?.image && (
-                <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name || "User"}
-                  className="w-8 h-8 rounded-full"
-                />
-              )}
-              <span className="text-sm">{user?.name || user?.email}</span>
-            </div>
-            <Button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        )}
-      </nav>
-
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header with Create Button */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
@@ -476,20 +403,24 @@ export default function Dashboard() {
                                 <Copy className="w-3 h-3" />
                               </button>
                               <div className="flex items-center justify-end gap-1">
-                            <Link href={`/analytics/${link.short_code}`}>
-                              <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white h-8 w-8 p-0">
-                                <BarChart3 className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteLink(link.id)}
-                              className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                                <Link href={`/analytics/${link.short_code}`}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-slate-400 hover:text-white h-8 w-8 p-0"
+                                  >
+                                    <BarChart3 className="w-4 h-4" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteLink(link.id)}
+                                  className="text-red-400 hover:text-red-300 h-8 w-8 p-0"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-slate-400 text-xs truncate">{link.original_url}</span>
@@ -530,7 +461,6 @@ export default function Dashboard() {
                             )}
                           </div>
                         </TableCell>
-                       
                       </TableRow>
                     )
                   })}

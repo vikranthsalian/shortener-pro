@@ -59,9 +59,7 @@ export default function ContactPage() {
               Contact
             </a>
           </div>
-          <Button onClick={() => router.push("/dashboard")} className="bg-indigo-600 hover:bg-indigo-700">
-            Get Started
-          </Button>
+      
         </nav>
       </header>
 
