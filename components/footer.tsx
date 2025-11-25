@@ -105,12 +105,12 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Resources</h4>
             <ul className="space-y-2">
-              <li>
+             {/* <li>
                 <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition">
                   Blog
                 </Link>
               </li> 
-              {/* <li>
+               <li>
                 <Link href="/resources" className="text-slate-400 hover:text-white text-sm transition">
                   Free Resources
                 </Link>
