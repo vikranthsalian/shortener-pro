@@ -2,13 +2,13 @@
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Calendar, User, Clock, Twitter, Facebook, Linkedin } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Twitter, Facebook, Linkedin, Share2, BookOpen } from "lucide-react"
 import { useRouter } from "next/navigation"
-import Navbar from "@/components/navbar"
 
 const blogPosts = [
   {
     id: 1,
+    slug: "best-practices-url-shortening-2025",
     title: "10 Best Practices for URL Shortening in 2025",
     excerpt:
       "Discover the most effective strategies for creating memorable short links that drive engagement and build trust with your audience.",
@@ -56,6 +56,7 @@ const blogPosts = [
   },
   {
     id: 2,
+    slug: "track-analyze-short-link-performance",
     title: "How to Track and Analyze Short Link Performance",
     excerpt:
       "Learn how to leverage analytics data to optimize your marketing campaigns and understand user behavior through detailed link tracking.",
@@ -89,6 +90,7 @@ const blogPosts = [
   },
   {
     id: 3,
+    slug: "monetizing-content-short-links",
     title: "Monetizing Your Content with Short Links",
     excerpt:
       "Explore proven strategies to turn your short links into revenue streams while maintaining a positive user experience.",
@@ -133,6 +135,7 @@ const blogPosts = [
   },
   {
     id: 4,
+    slug: "social-media-marketing-branded-short-links",
     title: "Social Media Marketing with Branded Short Links",
     excerpt:
       "Maximize your social media ROI by using branded short links that build trust and increase click-through rates across all platforms.",
@@ -179,6 +182,7 @@ const blogPosts = [
   },
   {
     id: 5,
+    slug: "complete-guide-link-analytics",
     title: "The Complete Guide to Link Analytics",
     excerpt:
       "Understanding metrics like CTR, conversion rates, and audience demographics to make data-driven marketing decisions.",
@@ -242,6 +246,7 @@ const blogPosts = [
   },
   {
     id: 6,
+    slug: "custom-domains-vs-generic-short-links",
     title: "Custom Domains vs Generic Short Links: Which is Better?",
     excerpt:
       "Compare the benefits of using custom branded domains versus generic short link services for your business needs.",
@@ -314,6 +319,7 @@ const blogPosts = [
   },
   {
     id: 7,
+    slug: "how-short-links-improve-marketing-ctr",
     title: "How Short Links Improve Marketing Click-Through Rates",
     excerpt:
       "Discover data-driven strategies and real-world examples of how shortened URLs can dramatically increase your marketing CTR by up to 250%.",
@@ -467,6 +473,7 @@ const blogPosts = [
   },
   {
     id: 8,
+    slug: "deep-guide-how-link-analytics-work",
     title: "Deep Guide — How Link Analytics Work (Full Breakdown)",
     excerpt:
       "A comprehensive technical breakdown of every metric in link analytics, from basic clicks to advanced attribution modeling.",
@@ -715,6 +722,7 @@ const blogPosts = [
   },
   {
     id: 9,
+    slug: "why-branded-short-links-increase-trust",
     title: "Why Branded Short Links Increase Trust & Conversions",
     excerpt:
       "Learn how branded domains build credibility and increase conversion rates by 34% compared to generic shorteners, backed by real data.",
@@ -963,6 +971,7 @@ const blogPosts = [
   },
   {
     id: 10,
+    slug: "case-study-business-roi-increase",
     title: "Case Study — How a Business Used Shortner Pro to Increase ROI",
     excerpt:
       "Real-world success story: How an e-commerce company increased their marketing ROI by 156% using strategic link management.",
@@ -1284,6 +1293,7 @@ const blogPosts = [
   },
   {
     id: 11,
+    slug: "beginner-guide-how-to-use-shortner-pro",
     title: "Beginner Guide — How to Use Shortner Pro (Step-by-Step)",
     excerpt:
       "Complete walkthrough for beginners: Create your first short link, track analytics, and master advanced features in under 15 minutes.",
@@ -1667,15 +1677,16 @@ const blogPosts = [
   },
 ]
 
-export default function ClientBlogDetailPage({ postId }: { postId: string }) {
+export default function ClientBlogDetailPage({ postSlug }: { postSlug: string }) {
   const router = useRouter()
-  const post = blogPosts.find((p) => p.id === Number.parseInt(postId))
+  const post = blogPosts.find((p) => p.slug === postSlug)
 
   if (!post) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <Card className="bg-slate-800 border-slate-700 p-8 text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Post Not Found</h1>
+          <h1 className="text-2xl font-bold text-white mb-4">Blog Post Not Found</h1>
+          <p className="text-slate-300 mb-6">The blog post you're looking for doesn't exist.</p>
           <Button onClick={() => router.push("/blog")} className="bg-indigo-600 hover:bg-indigo-700">
             Back to Blog
           </Button>
@@ -1686,146 +1697,180 @@ export default function ClientBlogDetailPage({ postId }: { postId: string }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
-        <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+      <header className="sticky top-0 z-50 border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-xl">
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => router.push("/")}>
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-white text-lg shadow-lg group-hover:shadow-indigo-500/50 transition-all duration-300">
               SP
             </div>
-            <h1 className="text-white font-bold text-2xl">Shortner Pro</h1>
+            <h1 className="text-white font-bold text-xl group-hover:text-indigo-400 transition-colors">Shortner Pro</h1>
           </div>
-          {/* <div className="hidden md:flex items-center gap-6">
-            <a href="/features" className="text-slate-300 hover:text-white transition">
-              Features
-            </a>
-            <a href="/how-it-works" className="text-white font-semibold">
-              How it Works
-            </a>
-            <a href="/faq" className="text-slate-300 hover:text-white transition">
-              FAQ
-            </a>
-            <a href="/contact" className="text-slate-300 hover:text-white transition">
-              Contact
-            </a>
-          </div>
-       */}
+          <Button
+            variant="ghost"
+            className="text-slate-300 hover:text-white hover:bg-slate-800"
+            onClick={() => router.push("/blog")}
+          >
+            <BookOpen className="w-4 h-4 mr-2" />
+            All Posts
+          </Button>
         </nav>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-12">
-        {/* Back Button */}
-        <Button variant="ghost" className="text-slate-300 hover:text-white mb-8" onClick={() => router.push("/blog")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Blog
-        </Button>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-transparent to-transparent" />
 
-        {/* Article Header */}
-        <article>
-          <header className="mb-8">
-            <div className="inline-block bg-indigo-600/20 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-              {post.category}
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">{post.title}</h1>
+        <main className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <Button
+            variant="ghost"
+            className="text-slate-400 hover:text-white hover:bg-slate-800/50 mb-8 group"
+            onClick={() => router.push("/blog")}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Back to Blog
+          </Button>
 
-            {/* Author Info */}
-            <div className="flex flex-wrap items-center gap-6 text-slate-400 text-sm mb-6">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>{post.author}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {new Date(post.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+          <article className="space-y-8">
+            <header className="space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 text-indigo-400 text-sm font-semibold px-4 py-1.5 rounded-full">
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse" />
+                  {post.category}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>{post.readTime}</span>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+                {post.title}
+              </h1>
+
+              <Card className="bg-slate-800/50 border-slate-700/50 p-6 backdrop-blur-sm">
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                      {post.author.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">{post.author}</div>
+                      <div className="text-slate-400 text-sm">Author</div>
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-slate-700 hidden sm:block" />
+
+                  <div className="flex flex-wrap items-center gap-4 text-slate-400 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-indigo-400" />
+                      <span>
+                        {new Date(post.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-indigo-400" />
+                      <span>{post.readTime}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="bg-slate-800/30 border-slate-700/50 p-4 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <Share2 className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-400 text-sm font-medium">Share this article:</span>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0"
+                      onClick={() =>
+                        window.open(
+                          `https://twitter.com/intent/tweet?url=${window.location.href}&text=${post.title}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      <Twitter className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0"
+                      onClick={() =>
+                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, "_blank")
+                      }
+                    >
+                      <Facebook className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full w-9 h-9 p-0"
+                      onClick={() =>
+                        window.open(
+                          `https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      <Linkedin className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </header>
+
+            <Card className="bg-slate-800/30 border-slate-700/50 p-8 sm:p-12 backdrop-blur-sm">
+              <div
+                className="prose prose-invert prose-slate max-w-none
+                  prose-headings:text-white prose-headings:font-bold prose-headings:tracking-tight
+                  prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-slate-700
+                  prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
+                  prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-6 prose-p:text-lg
+                  prose-a:text-indigo-400 prose-a:no-underline prose-a:font-medium hover:prose-a:text-indigo-300 prose-a:transition-colors
+                  prose-strong:text-white prose-strong:font-semibold
+                  prose-ul:list-disc prose-ul:pl-6 prose-ul:text-slate-300 prose-ul:space-y-2
+                  prose-ol:list-decimal prose-ol:pl-6 prose-ol:text-slate-300 prose-ol:space-y-2
+                  prose-li:mb-2 prose-li:leading-relaxed
+                  prose-blockquote:border-l-4 prose-blockquote:border-indigo-500 prose-blockquote:pl-6 prose-blockquote:italic prose-blockquote:text-slate-300
+                  prose-code:text-indigo-400 prose-code:bg-slate-900/50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                  prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700 prose-pre:rounded-lg
+                  prose-img:rounded-lg prose-img:shadow-xl"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            </Card>
+
+            <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 p-8 backdrop-blur-sm">
+              <div className="flex items-start gap-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg flex-shrink-0">
+                  {post.author.charAt(0)}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-white mb-2">About the Author</h3>
+                  <p className="text-slate-300 leading-relaxed mb-4">
+                    <strong className="text-white">{post.author}</strong> is a digital marketing expert specializing in
+                    link management and analytics. With over 10 years of experience, they help businesses optimize their
+                    online presence through data-driven strategies and innovative solutions.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-indigo-400 hover:text-indigo-300 hover:bg-slate-700/50"
+                    >
+                      <Twitter className="w-4 h-4 mr-2" />
+                      Follow
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
+            </Card>
 
-            {/* Share Buttons */}
-            <div className="flex items-center gap-3 pt-6 border-t border-slate-700">
-              <span className="text-slate-400 text-sm mr-2">Share:</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-slate-400 hover:text-white"
-                onClick={() =>
-                  window.open(
-                    `https://twitter.com/intent/tweet?url=${window.location.href}&text=${post.title}`,
-                    "_blank",
-                  )
-                }
-              >
-                <Twitter className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-slate-400 hover:text-white"
-                onClick={() =>
-                  window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, "_blank")
-                }
-              >
-                <Facebook className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-slate-400 hover:text-white"
-                onClick={() =>
-                  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}`, "_blank")
-                }
-              >
-                <Linkedin className="w-4 h-4" />
-              </Button>
-            </div>
-          </header>
-
-          {/* Article Content */}
-          <div
-            className="prose prose-invert prose-slate max-w-none mb-12
-              prose-headings:text-white prose-headings:font-bold prose-headings:mb-4
-              prose-h2:text-2xl prose-h2:mt-8
-              prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-4
-              prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:text-indigo-300
-              prose-strong:text-white prose-strong:font-semibold
-              prose-ul:list-disc prose-ul:pl-6 prose-ul:text-slate-300
-              prose-li:mb-2
-              prose-code:text-indigo-400 prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
-
-          {/* Article Footer */}
-          <footer className="border-t border-slate-700 pt-8">
-            <div className="bg-slate-800/50 rounded-lg p-6 mb-8">
-              <h3 className="text-xl font-bold text-white mb-2">About the Author</h3>
-              <p className="text-slate-300 text-sm mb-4">
-                <strong>{post.author}</strong> is a digital marketing expert specializing in link management and
-                analytics. With over 10 years of experience, they help businesses optimize their online presence through
-                data-driven strategies.
-              </p>
-            </div>
-
-            {/* CTA 
-            <Card className="bg-gradient-to-br from-indigo-900/30 to-purple-900/30 border-indigo-700 p-8 text-center">
-              <h3 className="text-2xl font-bold text-white mb-3">Ready to Start Shortening?</h3>
-              <p className="text-slate-300 mb-6">
-                Create professional short links with advanced analytics and monetization features.
-              </p>
-              <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/register")}>
-                Get Started Free
-              </Button>
-            </Card>*/}
-          </footer>
-        </article>
-      </main>
+           
+          </article>
+        </main>
+      </div>
     </div>
   )
 }

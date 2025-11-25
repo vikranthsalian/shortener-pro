@@ -70,12 +70,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Button variant="ghost" className="text-slate-300 hover:text-white" onClick={() => router.push("/login")}>
-                Sign In
-              </Button>
-              <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/register")}>
-                Sign Up
-              </Button>
+          
             </>
           )}
         </div>

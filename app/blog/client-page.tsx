@@ -3,10 +3,12 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Calendar, User } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const blogPosts = [
   {
     id: 1,
+    slug: "best-practices-url-shortening-2025",
     title: "10 Best Practices for URL Shortening in 2025",
     excerpt:
       "Discover the most effective strategies for creating memorable short links that drive engagement and build trust with your audience.",
@@ -17,6 +19,7 @@ const blogPosts = [
   },
   {
     id: 2,
+    slug: "track-analyze-short-link-performance",
     title: "How to Track and Analyze Short Link Performance",
     excerpt:
       "Learn how to leverage analytics data to optimize your marketing campaigns and understand user behavior through detailed link tracking.",
@@ -27,6 +30,7 @@ const blogPosts = [
   },
   {
     id: 3,
+    slug: "monetizing-content-short-links",
     title: "Monetizing Your Content with Short Links",
     excerpt:
       "Explore proven strategies to turn your short links into revenue streams while maintaining a positive user experience.",
@@ -37,6 +41,7 @@ const blogPosts = [
   },
   {
     id: 4,
+    slug: "social-media-marketing-branded-short-links",
     title: "Social Media Marketing with Branded Short Links",
     excerpt:
       "Maximize your social media ROI by using branded short links that build trust and increase click-through rates across all platforms.",
@@ -47,6 +52,7 @@ const blogPosts = [
   },
   {
     id: 5,
+    slug: "complete-guide-link-analytics",
     title: "The Complete Guide to Link Analytics",
     excerpt:
       "Understanding metrics like CTR, conversion rates, and audience demographics to make data-driven marketing decisions.",
@@ -57,6 +63,7 @@ const blogPosts = [
   },
   {
     id: 6,
+    slug: "custom-domains-vs-generic-short-links",
     title: "Custom Domains vs Generic Short Links: Which is Better?",
     excerpt:
       "Compare the benefits of using custom branded domains versus generic short link services for your business needs.",
@@ -67,6 +74,7 @@ const blogPosts = [
   },
   {
     id: 7,
+    slug: "how-short-links-improve-marketing-ctr",
     title: "How Short Links Improve Marketing Click-Through Rates",
     excerpt:
       "Discover data-driven strategies and real-world examples of how shortened URLs can dramatically increase your marketing CTR by up to 250%.",
@@ -77,6 +85,7 @@ const blogPosts = [
   },
   {
     id: 8,
+    slug: "deep-guide-how-link-analytics-work",
     title: "Deep Guide — How Link Analytics Work (Full Breakdown)",
     excerpt:
       "A comprehensive technical breakdown of every metric in link analytics, from basic clicks to advanced attribution modeling.",
@@ -87,6 +96,7 @@ const blogPosts = [
   },
   {
     id: 9,
+    slug: "why-branded-short-links-increase-trust",
     title: "Why Branded Short Links Increase Trust & Conversions",
     excerpt:
       "Learn how branded domains build credibility and increase conversion rates by 34% compared to generic shorteners, backed by real data.",
@@ -97,6 +107,7 @@ const blogPosts = [
   },
   {
     id: 10,
+    slug: "case-study-business-roi-increase",
     title: "Case Study — How a Business Used Shortner Pro to Increase ROI",
     excerpt:
       "Real-world success story: How an e-commerce company increased their marketing ROI by 156% using strategic link management.",
@@ -107,6 +118,7 @@ const blogPosts = [
   },
   {
     id: 11,
+    slug: "beginner-guide-how-to-use-shortner-pro",
     title: "Beginner Guide — How to Use Shortner Pro (Step-by-Step)",
     excerpt:
       "Complete walkthrough for beginners: Create your first short link, track analytics, and master advanced features in under 15 minutes.",
@@ -118,9 +130,11 @@ const blogPosts = [
 ]
 
 export default function ClientBlogPage() {
+  const router = useRouter()
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-     {/* Navigation */}
+      {/* Navigation */}
       <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
@@ -133,7 +147,7 @@ export default function ClientBlogPage() {
             <a href="/features" className="text-slate-300 hover:text-white transition">
               Features
             </a>
-             <a href="/blog" className="text-white font-semibold">
+            <a href="/blog" className="text-white font-semibold">
               Blogs
             </a>
             <a href="/how-it-works" className="text-slate-300 hover:text-white transition">
@@ -146,7 +160,6 @@ export default function ClientBlogPage() {
               Contact
             </a>
           </div>
-      
         </nav>
       </header>
 
@@ -188,7 +201,7 @@ export default function ClientBlogPage() {
                       variant="ghost"
                       size="sm"
                       className="text-indigo-400 hover:text-indigo-300 p-0 h-auto"
-                      onClick={() => (window.location.href = `/blog/${post.id}`)}
+                      onClick={() => (window.location.href = `/blog/${post.slug}`)}
                     >
                       Read More <ArrowRight className="w-4 h-4 ml-1" />
                     </Button>
