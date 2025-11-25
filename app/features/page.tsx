@@ -161,7 +161,7 @@ export default function FeaturesPage() {
           </Card>
         </section>
 
-        {/* CTA Section */}
+        {/* CTA Section 
         <section className="text-center bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-700 rounded-2xl p-12">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Get Started?</h2>
           <p className="text-slate-300 mb-8 max-w-2xl mx-auto">
@@ -170,7 +170,7 @@ export default function FeaturesPage() {
           <Button onClick={() => router.push("/dashboard")} size="lg" className="bg-indigo-600 hover:bg-indigo-700">
             Start for Free
           </Button>
-        </section>
+        </section>*/}
       </main>
     </div>
   )

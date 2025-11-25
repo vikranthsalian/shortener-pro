@@ -145,7 +145,7 @@ export default function FAQPage() {
           ))}
         </section>
 
-        {/* CTA Section */}
+        {/* CTA Section 
         <section className="text-center bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-700 rounded-2xl p-12">
           <h2 className="text-3xl font-bold text-white mb-4">Still Have Questions?</h2>
           <p className="text-slate-300 mb-8">
@@ -164,7 +164,7 @@ export default function FAQPage() {
               Get Started
             </Button>
           </div>
-        </section>
+        </section>*/}
       </main>
     </div>
   )
