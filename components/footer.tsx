@@ -83,21 +83,11 @@ export default function Footer() {
                   How it Works
                 </Link>
               </li>
-              {/*  <li>
+              <li>
                 <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm transition">
                   Dashboard
                 </Link>
               </li>
-             <li>
-                <Link href="/login" className="text-slate-400 hover:text-white text-sm transition">
-                  Sign In
-                </Link>
-              </li>
-              <li>
-                <Link href="/register" className="text-slate-400 hover:text-white text-sm transition">
-                  Sign Up
-                </Link>
-              </li> */}
             </ul>
           </div>
 
@@ -105,16 +95,11 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Resources</h4>
             <ul className="space-y-2">
-             {/* <li>
+              <li>
                 <Link href="/blog" className="text-slate-400 hover:text-white text-sm transition">
                   Blog
                 </Link>
-              </li> 
-               <li>
-                <Link href="/resources" className="text-slate-400 hover:text-white text-sm transition">
-                  Free Resources
-                </Link>
-              </li> */}
+              </li>
               <li>
                 <Link href="/faq" className="text-slate-400 hover:text-white text-sm transition">
                   FAQ
@@ -133,33 +118,22 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal Links 
+          {/* Legal Links */}
           <div>
             <h4 className="text-white font-semibold mb-4">Legal</h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-slate-400 hover:text-white text-sm transition">
+                <Link href="/privacy" className="text-slate-400 hover:text-white text-sm transition">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white text-sm transition">
+                <Link href="/terms" className="text-slate-400 hover:text-white text-sm transition">
                   Terms of Service
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-400 hover:text-white text-sm transition">
-                  Cookie Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-400 hover:text-white text-sm transition">
-                  Acceptable Use
-                </a>
+                </Link>
               </li>
             </ul>
-          </div>*/}
-          
+          </div>
         </div>
 
         {/* Bottom Bar */}

@@ -10,7 +10,7 @@ export default function HowItWorksPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Navigation */}
+       {/* Navigation */}
       <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
@@ -22,6 +22,9 @@ export default function HowItWorksPage() {
           <div className="hidden md:flex items-center gap-6">
             <a href="/features" className="text-slate-300 hover:text-white transition">
               Features
+            </a>
+             <a href="/blog" className="text-slate-300 hover:text-white transition">
+              Blogs
             </a>
             <a href="/how-it-works" className="text-white font-semibold">
               How it Works

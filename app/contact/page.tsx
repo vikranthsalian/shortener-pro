@@ -49,6 +49,9 @@ export default function ContactPage() {
             <a href="/features" className="text-slate-300 hover:text-white transition">
               Features
             </a>
+               <a href="/blog" className="text-slate-300 hover:text-white transition">
+              Blogs
+            </a>
             <a href="/how-it-works" className="text-slate-300 hover:text-white transition">
               How it Works
             </a>

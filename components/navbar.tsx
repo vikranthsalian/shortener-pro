@@ -36,12 +36,9 @@ export default function Navbar() {
           <Link href="/how-it-works" className="text-slate-300 hover:text-white transition">
             How it Works
           </Link>
-          {/* <Link href="/blog" className="text-slate-300 hover:text-white transition">
+          <Link href="/blog" className="text-slate-300 hover:text-white transition">
             Blog
-          </Link> */}
-          {/* <Link href="/resources" className="text-slate-300 hover:text-white transition">
-            Resources
-          </Link> */}
+          </Link>
           <Link href="/faq" className="text-slate-300 hover:text-white transition">
             FAQ
           </Link>
@@ -72,8 +69,14 @@ export default function Navbar() {
               </Button>
             </>
           ) : (
-          <div> </div>
-            
+            <>
+              <Button variant="ghost" className="text-slate-300 hover:text-white" onClick={() => router.push("/login")}>
+                Sign In
+              </Button>
+              <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/register")}>
+                Sign Up
+              </Button>
+            </>
           )}
         </div>
       </nav>

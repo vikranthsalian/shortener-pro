@@ -65,36 +65,88 @@ const blogPosts = [
     category: "Strategy",
     readTime: "5 min read",
   },
+  {
+    id: 7,
+    title: "How Short Links Improve Marketing Click-Through Rates",
+    excerpt:
+      "Discover data-driven strategies and real-world examples of how shortened URLs can dramatically increase your marketing CTR by up to 250%.",
+    author: "Marcus Thompson",
+    date: "2024-12-10",
+    category: "Marketing",
+    readTime: "10 min read",
+  },
+  {
+    id: 8,
+    title: "Deep Guide — How Link Analytics Work (Full Breakdown)",
+    excerpt:
+      "A comprehensive technical breakdown of every metric in link analytics, from basic clicks to advanced attribution modeling.",
+    author: "Dr. Rachel Kim",
+    date: "2024-12-05",
+    category: "Analytics",
+    readTime: "12 min read",
+  },
+  {
+    id: 9,
+    title: "Why Branded Short Links Increase Trust & Conversions",
+    excerpt:
+      "Learn how branded domains build credibility and increase conversion rates by 34% compared to generic shorteners, backed by real data.",
+    author: "Jennifer Martinez",
+    date: "2024-11-28",
+    category: "Branding",
+    readTime: "8 min read",
+  },
+  {
+    id: 10,
+    title: "Case Study — How a Business Used Shortner Pro to Increase ROI",
+    excerpt:
+      "Real-world success story: How an e-commerce company increased their marketing ROI by 156% using strategic link management.",
+    author: "Alex Foster",
+    date: "2024-11-20",
+    category: "Case Study",
+    readTime: "9 min read",
+  },
+  {
+    id: 11,
+    title: "Beginner Guide — How to Use Shortner Pro (Step-by-Step)",
+    excerpt:
+      "Complete walkthrough for beginners: Create your first short link, track analytics, and master advanced features in under 15 minutes.",
+    author: "Sarah Mitchell",
+    date: "2024-11-15",
+    category: "Tutorial",
+    readTime: "15 min read",
+  },
 ]
 
 export default function ClientBlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Navigation */}
+     {/* Navigation */}
       <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur">
         <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/")}>
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-lg">
               SP
             </div>
             <h1 className="text-white font-bold text-2xl">Shortner Pro</h1>
-          </a>
-          <div className="flex gap-4">
-            <Button
-              variant="ghost"
-              className="text-slate-300 hover:text-white"
-              onClick={() => (window.location.href = "/")}
-            >
-              Home
-            </Button>
-            <Button
-              variant="ghost"
-              className="text-slate-300 hover:text-white"
-              onClick={() => (window.location.href = "/dashboard")}
-            >
-              Dashboard
-            </Button>
           </div>
+          <div className="hidden md:flex items-center gap-6">
+            <a href="/features" className="text-slate-300 hover:text-white transition">
+              Features
+            </a>
+             <a href="/blog" className="text-white font-semibold">
+              Blogs
+            </a>
+            <a href="/how-it-works" className="text-slate-300 hover:text-white transition">
+              How it Works
+            </a>
+            <a href="/faq" className="text-slate-300 hover:text-white transition">
+              FAQ
+            </a>
+            <a href="/contact" className="text-slate-300 hover:text-white transition">
+              Contact
+            </a>
+          </div>
+      
         </nav>
       </header>
 
