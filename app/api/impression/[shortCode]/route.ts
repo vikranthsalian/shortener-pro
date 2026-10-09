@@ -2,11 +2,11 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
 import { runMigration } from "@/lib/migrate"
 
-export async function POST(request: NextRequest, { params }: { params: { shortCode: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ shortCode: string }> }) {
   try {
     await runMigration()
 
-    const { shortCode } = params
+    const { shortCode } = await params
 
     const urlResult = await sql`SELECT id FROM urls WHERE short_code = ${shortCode}`
 

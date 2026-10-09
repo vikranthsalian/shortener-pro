@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { revokeToken } from "@/lib/api-token"
 
-export async function DELETE(req: NextRequest, { params }: { params: { tokenId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ tokenId: string }> }) {
   try {
     const userId = req.headers.get("x-user-id")
 
@@ -9,7 +9,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { tokenId: 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const tokenId = Number.parseInt(params.tokenId)
+    const { tokenId: tokenIdParam } = await params
+  const tokenId = Number.parseInt(tokenIdParam)
     const success = await revokeToken(tokenId, Number.parseInt(userId))
 
     if (!success) {
