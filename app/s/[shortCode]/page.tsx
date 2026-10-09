@@ -41,20 +41,6 @@ export default function InterstitialPage() {
     fetchUrl()
   }, [shortCode])
 
-  // Load Google AdSense script
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID) {
-      const script = document.createElement("script")
-      script.async = true
-      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`
-      script.crossOrigin = "anonymous"
-      document.head.appendChild(script)
-
-      // Push ads after script loads
-      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
-    }
-  }, [])
-
   // Countdown timer
   useEffect(() => {
     if (!originalUrl || timeLeft === 0) return

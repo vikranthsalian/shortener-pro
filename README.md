@@ -155,3 +155,10 @@ MIT
 ## Support
 
 For issues and questions, open a GitHub issue or contact support@example.com
+
+## Ads provider
+
+Choose the ad network with `NEXT_PUBLIC_ADS_PROVIDER` = `meta` (default) | `google` | `none`.
+
+- Meta: `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_META_PLACEMENT_ID`
+- Google: `NEXT_PUBLIC_ADSENSE_CLIENT_ID`, `NEXT_PUBLIC_ADSENSE_AD_SLOT`

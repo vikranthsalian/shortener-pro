@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import Footer from "@/components/footer"
+import { GoogleAdsMeta, GoogleAdsScript } from "@/components/ads/google-ads-script"
+import { MetaAdsScript } from "@/components/ads/meta-ads-script"
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -116,7 +118,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="google-adsense-account" content="ca-pub-3042492065432652" />
+        <GoogleAdsMeta />
         <meta name="theme-color" content="#0f172a" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -132,11 +134,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://accounts.google.com" />
         <link rel="dns-prefetch" href="https://accounts.google.com" />
 
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
-          crossOrigin="anonymous"
-        />
+        <GoogleAdsScript />
+        <MetaAdsScript />
       </head>
       <body className={`font-sans antialiased flex flex-col min-h-screen`}>
         {children}
