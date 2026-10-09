@@ -18,6 +18,6 @@ function getClient() {
   return client
 }
 
-const sql = ((...args: Parameters<ReturnType<typeof neon>>) => getClient()(...args)) as ReturnType<typeof neon>
+const sql: any = (...args: Parameters<ReturnType<typeof neon>>) => getClient()(...args)
 
 export { sql }

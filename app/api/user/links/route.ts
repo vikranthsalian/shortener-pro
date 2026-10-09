@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 import { runMigration } from "@/lib/migrate"
 import { sql } from "@/lib/db"
 
@@ -9,7 +10,7 @@ export async function GET(request: Request) {
     const userId = searchParams.get("userId")
 
     if (!userId) {
-      return Response.json({ error: "User ID required" }, { status: 400 })
+      return NextResponse.json({ error: "User ID required" }, { status: 400 })
     }
 
     const result = await sql`
@@ -33,9 +34,9 @@ export async function GET(request: Request) {
       total_impressions: Number(link.total_impressions),
     }))
 
-    return Response.json({ links })
+    return NextResponse.json({ links })
   } catch (error) {
     console.error("[v0] Error fetching user links:", error)
-    return Response.json({ error: "Failed to fetch links" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to fetch links" }, { status: 500 })
   }
 }

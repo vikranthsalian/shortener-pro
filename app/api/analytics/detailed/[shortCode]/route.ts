@@ -3,11 +3,11 @@ import { sql } from "@/lib/db"
 import { runMigration } from "@/lib/migrate"
 import { getHourlyStats, getDeviceStats, getBrowserStats, getOSStats, getLocationStats } from "@/lib/analytics-utils"
 
-export async function GET(request: NextRequest, { params }: { params: { shortCode: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ shortCode: string }> }) {
   try {
     await runMigration()
 
-    const { shortCode } = params
+    const { shortCode } = await params
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("userId")
 

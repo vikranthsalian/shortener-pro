@@ -218,13 +218,8 @@ export default function Home() {
                       <Label className="block text-sm font-medium text-slate-200 mb-2" htmlFor="link-expiry">
                         Link Expiry
                       </Label>
-                      <Select
-                        id="link-expiry"
-                        value={expiry}
-                        onChange={(e) => setExpiry(e.target.value as "7days" | "1month" | "never")}
-                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-md px-3 py-2"
-                        aria-label="Choose link expiry option"
-                      >
+          <Select value={expiry} onValueChange={(value) => setExpiry(value as "7days" | "1month" | "never")}>
+
                         <SelectTrigger>
                           <SelectValue placeholder="Select expiry" />
                         </SelectTrigger>

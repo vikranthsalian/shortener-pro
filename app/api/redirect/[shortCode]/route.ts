@@ -3,11 +3,11 @@ import { sql } from "@/lib/db"
 import { runMigration } from "@/lib/migrate"
 import { parseUserAgent, getLocationFromIP } from "@/lib/device-detection"
 
-export async function GET(request: NextRequest, { params }: { params: { shortCode: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ shortCode: string }> }) {
   try {
     await runMigration()
 
-    const { shortCode } = params
+    const { shortCode } = await params
 
     const result = await sql`
       SELECT id, original_url, expiry_date 
