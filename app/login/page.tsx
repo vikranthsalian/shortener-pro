@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
+import { AdSlot } from "@/components/ads/ad-slot"
 
 declare global {
   interface Window {
     google: any
-    adsbygoogle: any
   }
 }
 
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false)
 
-  // Load Google Sign-In and AdSense scripts
+  // Load Google Sign-In and script
   useEffect(() => {
     const googleScript = document.createElement("script")
     googleScript.src = "https://accounts.google.com/gsi/client"
@@ -47,28 +47,9 @@ export default function LoginPage() {
     }
     document.body.appendChild(googleScript)
 
-    const adsenseScript = document.createElement("script")
-    adsenseScript.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`
-    adsenseScript.async = true
-    adsenseScript.crossOrigin = "anonymous"
-    document.head.appendChild(adsenseScript)
-
     return () => {
       if (document.body.contains(googleScript)) {
         document.body.removeChild(googleScript)
-      }
-      if (document.head.contains(adsenseScript)) {
-        document.head.removeChild(adsenseScript)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (window.adsbygoogle) {
-      try {
-        window.adsbygoogle.push({})
-      } catch (err) {
-        console.log("[v0] AdSense push failed:", err)
       }
     }
   }, [])
@@ -228,14 +209,7 @@ export default function LoginPage() {
         </form>
 
         <div className="my-6">
-          <ins
-            className="adsbygoogle"
-            style={{ display: "block" }}
-            data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
-            data-ad-slot={process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT}
-            data-ad-format="auto"
-            data-full-width-responsive="true"
-          ></ins>
+          <AdSlot />
         </div>
 
         {/* Sign Up Link */}

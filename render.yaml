@@ -11,6 +11,12 @@ services:
         sync: false
       - key: NEXT_PUBLIC_BASE_URL
         value: https://url-shortener.onrender.com
+      - key: NEXT_PUBLIC_ADS_PROVIDER
+        value: meta
+      - key: NEXT_PUBLIC_META_PIXEL_ID
+        value: "2565914893915526"
+      - key: NEXT_PUBLIC_META_PLACEMENT_ID
+        sync: false
       - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
         scope: build,runtime
         sync: false

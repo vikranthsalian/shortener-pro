@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, { params }: { params: { shortCo
 
     await sql`
       INSERT INTO impressions (url_id, ad_type, user_agent, ip_address) 
-      VALUES (${urlId}, 'adsense', ${userAgent}, ${ip})
+      VALUES (${urlId}, ${process.env.NEXT_PUBLIC_ADS_PROVIDER === 'google' ? 'adsense' : 'meta'}, ${userAgent}, ${ip})
     `
 
     return NextResponse.json({ success: true })
