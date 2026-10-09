@@ -10,5 +10,5 @@ export const isGoogleAds = ADS_PROVIDER === "google"
 
 export const GOOGLE_ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
 export const GOOGLE_ADSENSE_AD_SLOT = process.env.NEXT_PUBLIC_ADSENSE_AD_SLOT
-export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
+export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "2565914893915526"
 export const META_PLACEMENT_ID = process.env.NEXT_PUBLIC_META_PLACEMENT_ID
